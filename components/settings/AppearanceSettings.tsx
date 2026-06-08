@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import * as Switch from "@radix-ui/react-switch";
 import * as ToggleGroup from "@radix-ui/react-toggle-group";
 import { Sun, Moon, Monitor } from "lucide-react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import type { ThemeMode, SidebarDensity, FontSize } from "@/lib/types";
+import { ToggleSwitch } from "@/components/common/ToggleSwitch";
+import { RadioTileGroup } from "./RadioTileGroup";
+import { Type, AlignLeft, AlignJustify, Maximize } from "lucide-react";
 
 export function AppearanceSettings() {
   const { theme, setTheme } = useTheme();
@@ -25,7 +27,7 @@ export function AppearanceSettings() {
 
       {/* Theme */}
       <section aria-labelledby="theme-heading">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col gap-3">
           <div>
             <h3 id="theme-heading" className="text-sm font-medium text-gray-900">
               Theme
@@ -34,34 +36,19 @@ export function AppearanceSettings() {
               Choose your preferred theme
             </p>
           </div>
-          <ToggleGroup.Root
-            type="single"
-            value={mounted ? theme : "system"}
-            onValueChange={(v) => v && setTheme(v as ThemeMode)}
-            className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl shrink-0"
-            aria-label="Theme selection"
-          >
-            {[
-              { value: "light", icon: <Sun size={14} />, label: "Light" },
-              { value: "dark", icon: <Moon size={14} />, label: "Dark" },
-              { value: "system", icon: <Monitor size={14} />, label: "System" },
-            ].map(({ value, icon, label }) => (
-              <ToggleGroup.Item
-                key={value}
-                value={value}
-                aria-label={`${label} theme`}
-                className={cn(
-                  "flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-150 min-w-[56px]",
-                  theme === value
-                    ? "bg-blue-600 text-white shadow-sm"
-                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-                )}
-              >
-                {icon}
-                {label}
-              </ToggleGroup.Item>
-            ))}
-          </ToggleGroup.Root>
+          <div className="mt-2 flex justify-start">
+            <RadioTileGroup
+              name="theme"
+              value={mounted ? theme || "system" : "system"}
+              onChange={(v) => setTheme(v as ThemeMode)}
+              options={[
+                { value: "light", icon: <Sun />, label: "Light" },
+                { value: "dark", icon: <Moon />, label: "Dark" },
+                { value: "system", icon: <Monitor />, label: "System" },
+              ]}
+              className="!justify-start gap-3"
+            />
+          </div>
         </div>
       </section>
 
@@ -76,23 +63,16 @@ export function AppearanceSettings() {
               Display times in 24-hour format
             </p>
           </div>
-          <Switch.Root
+          <ToggleSwitch
             checked={use24Hour}
-            onCheckedChange={setUse24Hour}
-            aria-labelledby="time-format-heading"
-            className={cn(
-              "relative inline-flex h-6 w-11 rounded-full transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
-              use24Hour ? "bg-blue-600" : "bg-gray-200"
-            )}
-          >
-            <Switch.Thumb className="block h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200 translate-x-0.5 data-[state=checked]:translate-x-5.5" />
-          </Switch.Root>
+            onChange={setUse24Hour}
+          />
         </div>
       </section>
 
       {/* Sidebar Density */}
       <section aria-labelledby="density-heading" className="border-t border-gray-100 pt-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex flex-col gap-3">
           <div>
             <h3 id="density-heading" className="text-sm font-medium text-gray-900">
               Sidebar Density
@@ -101,34 +81,25 @@ export function AppearanceSettings() {
               Choose how comfortable the sidebar looks
             </p>
           </div>
-          <ToggleGroup.Root
-          type="single"
-          value={density}
-          onValueChange={(v) => v && setDensity(v as SidebarDensity)}
-          className="flex gap-1"
-          aria-labelledby="density-heading"
-        >
-          {(["compact", "comfortable", "spacious"] as SidebarDensity[]).map((d) => (
-            <ToggleGroup.Item
-              key={d}
-              value={d}
-              className={cn(
-                "flex-1 py-1.5 text-xs font-medium rounded-lg border transition-all duration-150 capitalize",
-                density === d
-                  ? "border-blue-500 bg-blue-50 text-blue-700"
-                  : "border-gray-200 text-gray-500 hover:border-gray-300 hover:text-gray-700"
-              )}
-            >
-              {d}
-            </ToggleGroup.Item>
-          ))}
-        </ToggleGroup.Root>
+          <div className="mt-2 flex justify-start">
+            <RadioTileGroup
+              name="density"
+              value={density}
+              onChange={(v) => setDensity(v as SidebarDensity)}
+              options={[
+                { value: "compact", icon: <AlignLeft />, label: "Compact" },
+                { value: "comfortable", icon: <AlignJustify />, label: "Comfort" },
+                { value: "spacious", icon: <Maximize />, label: "Spacious" },
+              ]}
+              className="!justify-start gap-3"
+            />
+          </div>
         </div>
       </section>
 
       {/* Font Size */}
       <section aria-labelledby="font-size-heading" className="border-t border-gray-100 pt-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex flex-col gap-3">
           <div>
             <h3 id="font-size-heading" className="text-sm font-medium text-gray-900">
               Font Size
@@ -137,28 +108,19 @@ export function AppearanceSettings() {
               Adjust the size of text across the app
             </p>
           </div>
-          <ToggleGroup.Root
-          type="single"
-          value={fontSize}
-          onValueChange={(v) => v && setFontSize(v as FontSize)}
-          className="flex gap-1"
-          aria-labelledby="font-size-heading"
-        >
-          {(["small", "medium", "large"] as FontSize[]).map((f) => (
-            <ToggleGroup.Item
-              key={f}
-              value={f}
-              className={cn(
-                "flex-1 py-1.5 text-xs font-medium rounded-lg border transition-all duration-150 capitalize",
-                fontSize === f
-                  ? "border-blue-500 bg-blue-50 text-blue-700"
-                  : "border-gray-200 text-gray-500 hover:border-gray-300 hover:text-gray-700"
-              )}
-            >
-              {f}
-            </ToggleGroup.Item>
-          ))}
-        </ToggleGroup.Root>
+          <div className="mt-2 flex justify-start">
+            <RadioTileGroup
+              name="fontSize"
+              value={fontSize}
+              onChange={(v) => setFontSize(v as FontSize)}
+              options={[
+                { value: "small", icon: <Type size={16} />, label: "Small" },
+                { value: "medium", icon: <Type size={20} />, label: "Medium" },
+                { value: "large", icon: <Type size={24} />, label: "Large" },
+              ]}
+              className="!justify-start gap-3"
+            />
+          </div>
         </div>
       </section>
 
@@ -173,17 +135,10 @@ export function AppearanceSettings() {
               Minimize animations throughout the app
             </p>
           </div>
-          <Switch.Root
+          <ToggleSwitch
             checked={reduceMotion}
-            onCheckedChange={setReduceMotion}
-            aria-labelledby="motion-heading"
-            className={cn(
-              "relative inline-flex h-6 w-11 rounded-full transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
-              reduceMotion ? "bg-blue-600" : "bg-gray-200"
-            )}
-          >
-            <Switch.Thumb className="block h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200 translate-x-0.5 data-[state=checked]:translate-x-5.5" />
-          </Switch.Root>
+            onChange={setReduceMotion}
+          />
         </div>
       </section>
 
@@ -196,17 +151,10 @@ export function AppearanceSettings() {
             </h3>
             <p className="text-xs text-gray-400 mt-0.5">Show colors on tags</p>
           </div>
-          <Switch.Root
+          <ToggleSwitch
             checked={coloredTags}
-            onCheckedChange={setColoredTags}
-            aria-labelledby="colored-tags-heading"
-            className={cn(
-              "relative inline-flex h-6 w-11 rounded-full transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
-              coloredTags ? "bg-blue-600" : "bg-gray-200"
-            )}
-          >
-            <Switch.Thumb className="block h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200 translate-x-0.5 data-[state=checked]:translate-x-5.5" />
-          </Switch.Root>
+            onChange={setColoredTags}
+          />
         </div>
       </section>
     </div>

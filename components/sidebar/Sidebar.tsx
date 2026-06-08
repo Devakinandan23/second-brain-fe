@@ -1,8 +1,8 @@
-"use client";
-
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import type { SidebarSection, Note, SourceType } from "@/lib/types";
 import { SiYoutube, SiX } from "@icons-pack/react-simple-icons";
+import { getTagColor } from "@/components/common/Tag";
 import {
   Inbox,
   Sun,
@@ -22,23 +22,14 @@ import {
   CloudUpload,
 } from "lucide-react";
 
-// Tag dot colors matching the screenshot
-const TAG_COLORS: { dot: string; name: string }[] = [
-  { dot: "bg-orange-400", name: "" }, // System Design
-  { dot: "bg-orange-400", name: "" }, // Backend
-  { dot: "bg-amber-400", name: "" },  // AI / ML
-  { dot: "bg-pink-400", name: "" },   // Career
-  { dot: "bg-pink-400", name: "" },   // Reading
-  { dot: "bg-blue-400", name: "" },
-  { dot: "bg-green-400", name: "" },
-  { dot: "bg-purple-400", name: "" },
-];
-
 interface SidebarProps {
   activeSection: SidebarSection;
   onSectionChange: (s: SidebarSection) => void;
   onOpenSettings: () => void;
   notes: Note[];
+  onAddTag?: (tag: string) => void;
+  activeTag?: string | null;
+  onTagSelect?: (tag: string) => void;
 }
 
 function countBySource(notes: Note[], source: SourceType) {
@@ -156,12 +147,19 @@ export function Sidebar({
   onSectionChange,
   onOpenSettings,
   notes,
+  onAddTag,
+  activeTag,
+  onTagSelect,
 }: SidebarProps) {
+  const [isAddingTag, setIsAddingTag] = useState(false);
+  const [newTagInput, setNewTagInput] = useState("");
+
   const tags = getAllTags(notes);
   const inboxCount = notes.filter((n) => {
     const d = new Date(n.createdAt);
     return Date.now() - d.getTime() < 86400000 * 2;
   }).length;
+  const favoritesCount = notes.filter((n) => n.isFavorite).length;
 
   return (
     <aside
@@ -238,6 +236,7 @@ export function Sidebar({
           <NavRow
             icon={<Heart size={15} />}
             label="Favorites"
+            count={favoritesCount}
             isActive={activeSection === "favorites"}
             onClick={() => onSectionChange("favorites")}
           />
@@ -313,26 +312,64 @@ export function Sidebar({
               <button
                 key={tag}
                 type="button"
-                className="flex items-center gap-2.5 px-2.5 py-[7px] rounded-lg text-[13px] text-gray-600 hover:bg-gray-100 hover:text-gray-800 transition-colors w-full text-left"
+                onClick={() => onTagSelect?.(tag)}
+                className={cn(
+                  "flex items-center gap-2.5 px-2.5 py-[7px] rounded-lg text-[13px] transition-colors w-full text-left",
+                  activeTag === tag
+                    ? "bg-blue-50 text-blue-700 font-medium"
+                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-800"
+                )}
               >
                 <span
                   className={cn(
                     "w-2.5 h-2.5 rounded-full shrink-0",
-                    TAG_COLORS[i % TAG_COLORS.length].dot
+                    getTagColor(tag).dot
                   )}
                   aria-hidden="true"
                 />
                 <span className="flex-1 truncate capitalize">{tag}</span>
-                <span className="text-xs text-gray-400 tabular-nums">{count}</span>
+                <span className={cn(
+                  "text-xs tabular-nums",
+                  activeTag === tag ? "text-blue-500" : "text-gray-400"
+                )}>
+                  {count}
+                </span>
               </button>
             ))}
-            <button
-              type="button"
-              className="flex items-center gap-2.5 px-2.5 py-[7px] rounded-lg text-[13px] text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors w-full text-left"
-            >
-              <Plus size={13} className="shrink-0" />
-              <span>New Tag</span>
-            </button>
+            
+            {isAddingTag ? (
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (newTagInput.trim() && onAddTag) {
+                    onAddTag(newTagInput.trim());
+                  }
+                  setNewTagInput("");
+                  setIsAddingTag(false);
+                }}
+                className="flex items-center gap-2.5 px-2.5 py-[3px]"
+              >
+                <input
+                  // eslint-disable-next-line jsx-a11y/no-autofocus
+                  autoFocus
+                  type="text"
+                  value={newTagInput}
+                  onChange={(e) => setNewTagInput(e.target.value)}
+                  onBlur={() => setIsAddingTag(false)}
+                  placeholder="Tag name..."
+                  className="w-full text-[13px] bg-gray-100 border border-gray-200 rounded px-2 py-1 outline-none focus:border-blue-400"
+                />
+              </form>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsAddingTag(true)}
+                className="flex items-center gap-2.5 px-2.5 py-[7px] rounded-lg text-[13px] text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors w-full text-left"
+              >
+                <Plus size={13} className="shrink-0" />
+                <span>New Tag</span>
+              </button>
+            )}
           </div>
         </div>
       </div>

@@ -30,11 +30,13 @@ export default function DashboardPage() {
 
   // UI state
   const [activeSection, setActiveSection] = useState<SidebarSection>("all");
+  const [activeTag, setActiveTag] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
+  const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [prefilledTag, setPrefilledTag] = useState<string | null>(null);
 
   // Resize logic
   const [contentWidth, setContentWidth] = useState(420);
@@ -63,6 +65,8 @@ export default function DashboardPage() {
   // Data
   const { data: notes = [], isLoading } = useContent();
 
+  const selectedNote = notes.find((n) => n.id === selectedNoteId) || null;
+
   // ⌘K shortcut for search
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -70,21 +74,40 @@ export default function DashboardPage() {
         e.preventDefault();
         document.getElementById("global-search")?.focus();
       }
-      // Escape clears selection
-      if (e.key === "Escape" && selectedNote) {
-        setSelectedNote(null);
-      }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [selectedNote]);
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && selectedNoteId) setSelectedNoteId(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [selectedNoteId]);
+
+  const handleSectionChange = useCallback((s: SidebarSection) => {
+    setActiveSection(s);
+    setActiveTag(null);
+  }, []);
+
+  const handleTagSelect = useCallback((tag: string) => {
+    setActiveTag(prev => prev === tag ? null : tag);
+  }, []);
 
   const handleSelectNote = useCallback((note: Note) => {
-    setSelectedNote((prev) => (prev?.id === note.id ? null : note));
+    setSelectedNoteId((prev) => (prev === note.id ? null : note.id));
   }, []);
 
   const handleAddContent = useCallback(() => {
-    setSelectedNote(null); // Show Quick Add panel
+    setSelectedNoteId(null); // Show Quick Add panel
+    setPrefilledTag(null);
+  }, []);
+
+  const handleAddTagFromSidebar = useCallback((tag: string) => {
+    setSelectedNoteId(null);
+    setPrefilledTag(tag);
   }, []);
 
   if (!isAuthChecked) {
@@ -108,9 +131,12 @@ export default function DashboardPage() {
       {isSidebarOpen && (
         <Sidebar
           activeSection={activeSection}
-          onSectionChange={setActiveSection}
+          onSectionChange={handleSectionChange}
           onOpenSettings={() => setSettingsOpen(true)}
           notes={notes}
+          onAddTag={handleAddTagFromSidebar}
+          activeTag={activeTag}
+          onTagSelect={handleTagSelect}
         />
       )}
 
@@ -138,9 +164,10 @@ export default function DashboardPage() {
             <ContentList
               notes={notes}
               isLoading={isLoading}
-              selectedNoteId={selectedNote?.id}
+              selectedNoteId={selectedNoteId}
               onSelectNote={handleSelectNote}
               activeSection={activeSection}
+              activeTag={activeTag}
               searchQuery={searchQuery}
             />
           </div>
@@ -156,10 +183,14 @@ export default function DashboardPage() {
             {selectedNote ? (
               <DetailView
                 note={selectedNote}
-                onClose={() => setSelectedNote(null)}
+                onClose={() => setSelectedNoteId(null)}
               />
             ) : (
-              <QuickAddPanel onSaved={() => {}} />
+              <QuickAddPanel 
+                onSaved={() => {}} 
+                prefilledTag={prefilledTag} 
+                onClearPrefilledTag={() => setPrefilledTag(null)} 
+              />
             )}
           </div>
         </div>

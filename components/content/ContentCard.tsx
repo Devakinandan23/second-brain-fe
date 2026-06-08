@@ -53,24 +53,12 @@ function SourceIcon({ type }: { type: SourceType }) {
   }
 }
 
+import { getTagColor } from "@/components/common/Tag";
+
 // Tag pill — matches the subtle colored pills in the screenshot
 function TagPill({ label }: { label: string }) {
-  const TAG_PILL_COLORS: Record<string, string> = {
-    "system-design": "bg-blue-100 text-blue-700",
-    backend: "bg-green-100 text-green-700",
-    habits: "bg-purple-100 text-purple-700",
-    projects: "bg-orange-100 text-orange-700",
-    "web-dev": "bg-blue-100 text-blue-700",
-    dsa: "bg-blue-100 text-blue-700",
-    tools: "bg-blue-100 text-blue-700",
-    ai: "bg-yellow-100 text-yellow-700",
-    "ai-ml": "bg-yellow-100 text-yellow-700",
-    career: "bg-pink-100 text-pink-700",
-    reading: "bg-pink-100 text-pink-700",
-    scalability: "bg-purple-100 text-purple-700",
-  };
-  const colorClass =
-    TAG_PILL_COLORS[label.toLowerCase()] ?? "bg-gray-100 text-gray-600";
+  const { bg, text } = getTagColor(label);
+  const colorClass = `${bg} ${text}`;
   return (
     <span
       className={cn(

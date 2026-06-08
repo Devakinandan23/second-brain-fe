@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import {
   Zap,
@@ -11,7 +11,7 @@ import {
   BookmarkPlus,
 } from "lucide-react";
 import { SiX } from "@icons-pack/react-simple-icons";
-import { useCreateContent } from "@/lib/hooks/useContent";
+import { useContent, useCreateContent } from "@/lib/hooks/useContent";
 import { cn } from "@/lib/utils";
 
 type QuickAddTab = "link" | "note" | "screenshot" | "tweet";
@@ -23,13 +23,13 @@ interface FormValues {
   notes: string;
 }
 
-const SUGGESTED_TAGS = ["system-design", "backend", "web-dev", "ai-ml"];
-
 interface QuickAddPanelProps {
   onSaved?: () => void;
+  prefilledTag?: string | null;
+  onClearPrefilledTag?: () => void;
 }
 
-export function QuickAddPanel({ onSaved }: QuickAddPanelProps) {
+export function QuickAddPanel({ onSaved, prefilledTag, onClearPrefilledTag }: QuickAddPanelProps) {
   const [activeTab, setActiveTab] = useState<QuickAddTab>("link");
   const [tagPills, setTagPills] = useState<string[]>([]);
   const [isFetchingMeta, setIsFetchingMeta] = useState(false);
@@ -42,6 +42,32 @@ export function QuickAddPanel({ onSaved }: QuickAddPanelProps) {
     });
 
   const { mutateAsync: createContent, isPending } = useCreateContent();
+  const { data: notesData } = useContent();
+  const notes = notesData || [];
+
+  // Calculate top 5 most used tags
+  const topTags = useCallback(() => {
+    const tagMap: Record<string, number> = {};
+    for (const note of notes) {
+      for (const tag of note.tags) {
+        tagMap[tag.title] = (tagMap[tag.title] ?? 0) + 1;
+      }
+    }
+    return Object.entries(tagMap)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([title]) => title);
+  }, [notes])();
+
+  // Handle prefilled tag
+  useEffect(() => {
+    if (prefilledTag && !tagPills.includes(prefilledTag)) {
+      setTagPills((prev) => [...prev, prefilledTag]);
+    }
+    return () => {
+      if (prefilledTag) onClearPrefilledTag?.();
+    };
+  }, [prefilledTag, tagPills, onClearPrefilledTag]);
   const urlValue = watch("url");
 
   const handleUrlBlur = useCallback(async () => {
@@ -114,8 +140,8 @@ export function QuickAddPanel({ onSaved }: QuickAddPanelProps) {
   const TABS: { id: QuickAddTab; icon: React.ReactNode; label: string }[] = [
     { id: "link", icon: <Link2 size={13} />, label: "Link" },
     { id: "note", icon: <FileText size={13} />, label: "Note" },
-    { id: "screenshot", icon: <ImageIcon size={13} />, label: "Screenshot" },
-    { id: "tweet", icon: <SiX size={13} />, label: "Tweet" },
+    // { id: "screenshot", icon: <ImageIcon size={13} />, label: "Screenshot" },
+    // { id: "tweet", icon: <SiX size={13} />, label: "Tweet" },
   ];
 
   return (
@@ -283,19 +309,21 @@ export function QuickAddPanel({ onSaved }: QuickAddPanelProps) {
                 />
 
                 {/* Suggested tags */}
-                <div className="flex flex-wrap items-center gap-2 mt-3 px-1">
-                  <span className="text-[12px] text-gray-500">Suggested:</span>
-                  {SUGGESTED_TAGS.filter((t) => !tagPills.includes(t)).map((tag) => (
-                    <button
-                      key={tag}
-                      type="button"
-                      onClick={() => addSuggestedTag(tag)}
-                      className="text-[11px] px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-full transition-colors font-semibold"
-                    >
-                      {tag}
-                    </button>
-                  ))}
-                </div>
+                {topTags.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-2 mt-3 px-1">
+                    <span className="text-[12px] text-gray-500">Suggested:</span>
+                    {topTags.filter((t) => !tagPills.includes(t)).map((tag) => (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => addSuggestedTag(tag)}
+                        className="text-[11px] px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-full transition-colors font-semibold capitalize"
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Notes textarea */}

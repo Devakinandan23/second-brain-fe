@@ -5,7 +5,7 @@ import type { Note, SidebarSection, SourceType } from "@/lib/types";
 import { groupNotesByDate } from "@/lib/utils";
 import { FileText } from "lucide-react";
 
-function filterNotes(notes: Note[], section: SidebarSection, search: string): Note[] {
+function filterNotes(notes: Note[], section: SidebarSection, search: string, tag: string | null): Note[] {
   let filtered = notes;
 
   const sectionToSource: Partial<Record<SidebarSection, SourceType>> = {
@@ -34,6 +34,8 @@ function filterNotes(notes: Note[], section: SidebarSection, search: string): No
     filtered = filtered.filter(
       (n) => new Date(n.createdAt).getTime() > cutoff
     );
+  } else if (section === "favorites") {
+    filtered = filtered.filter((n) => n.isFavorite);
   } else if (sectionToSource[section]) {
     filtered = filtered.filter((n) => n.sourceType === sectionToSource[section]);
   }
@@ -48,6 +50,10 @@ function filterNotes(notes: Note[], section: SidebarSection, search: string): No
     );
   }
 
+  if (tag) {
+    filtered = filtered.filter((n) => n.tags.some((t) => t.title === tag));
+  }
+
   return [...filtered].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
@@ -59,6 +65,7 @@ interface ContentListProps {
   selectedNoteId?: string | null;
   onSelectNote: (note: Note) => void;
   activeSection: SidebarSection;
+  activeTag?: string | null;
   searchQuery: string;
 }
 
@@ -87,6 +94,7 @@ export function ContentList({
   selectedNoteId,
   onSelectNote,
   activeSection,
+  activeTag = null,
   searchQuery,
 }: ContentListProps) {
   if (isLoading) {
@@ -99,7 +107,7 @@ export function ContentList({
     );
   }
 
-  const filtered = filterNotes(notes, activeSection, searchQuery);
+  const filtered = filterNotes(notes, activeSection, searchQuery, activeTag);
   const groups = groupNotesByDate(filtered);
 
   if (filtered.length === 0) {

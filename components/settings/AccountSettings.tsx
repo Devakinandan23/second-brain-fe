@@ -102,7 +102,7 @@ export function AccountSettings({ username }: AccountSettingsProps) {
         <div className="space-y-0">
           <div className="flex items-center justify-between py-3 border-b border-gray-100">
             <div>
-              <p className="text-xs text-gray-400">Day One ID</p>
+              <p className="text-xs text-gray-400">Second Brain ID</p>
               <p className="text-sm text-gray-700 mt-0.5">—</p>
             </div>
             <button

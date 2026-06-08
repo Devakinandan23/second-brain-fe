@@ -26,6 +26,7 @@ export interface Note {
   authorName?: string | null;
   metadata?: Record<string, unknown> | null;
   isPublic: boolean;
+  isFavorite: boolean;
   userId: number;
   createdAt: string;
   updatedAt: string;
@@ -93,6 +94,8 @@ export interface UpdateContentRequest {
   authorName?: string;
   metadata?: Record<string, unknown>;
   isPublic?: boolean;
+  isFavorite?: boolean;
+  tags?: string[];
 }
 
 export interface DeleteContentRequest {

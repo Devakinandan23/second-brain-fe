@@ -14,13 +14,17 @@ import {
   FileText,
   Plus,
   Lock,
+  Unlock,
   Maximize2,
+  X,
 } from "lucide-react";
 import { Tag } from "@/components/common/Tag";
+import { TagAutocompleteInput } from "@/components/common/TagAutocompleteInput";
+import { ToggleSwitch } from "@/components/common/ToggleSwitch";
 import { cn, formatDate, getSourceLabel, extractDomain } from "@/lib/utils";
 import { SiYoutube, SiX, SiNotion, SiGoogledocs } from "@icons-pack/react-simple-icons";
 import type { Note, SourceType } from "@/lib/types";
-import { useUpdateContent } from "@/lib/hooks/useContent";
+import { useContent, useUpdateContent } from "@/lib/hooks/useContent";
 
 const SOURCE_ICONS: Record<SourceType, React.ReactNode> = {
   YOUTUBE: <SiYoutube size={18} className="text-[#FF0000]" />,
@@ -49,12 +53,14 @@ function formatExactDate(dateStr: string) {
   return `${month} ${day}, ${year} at ${time}`;
 }
 
+
 export function DetailView({ note, onClose }: DetailViewProps) {
   const [activeTab, setActiveTab] = useState<DetailTab>("overview");
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(note.title);
   const [editDescription, setEditDescription] = useState(note.description || "");
   const [editContent, setEditContent] = useState(note.content || "");
+  const [editTags, setEditTags] = useState<string[]>(note.tags.map((t) => t.title));
 
   const { mutateAsync: updateContent, isPending: isUpdating } = useUpdateContent();
 
@@ -66,12 +72,41 @@ export function DetailView({ note, onClose }: DetailViewProps) {
           title: editTitle,
           description: editDescription,
           content: editContent,
+          tags: editTags,
         },
       });
       setIsEditing(false);
     } catch (e) {
       console.error(e);
       alert("Failed to save changes.");
+    }
+  }
+
+  async function handleToggleVisibility() {
+    try {
+      await updateContent({
+        id: note.id,
+        data: {
+          isPublic: !note.isPublic,
+        },
+      });
+    } catch (e) {
+      console.error(e);
+      alert("Failed to update visibility.");
+    }
+  }
+
+  async function handleToggleFavorite(newState: boolean) {
+    try {
+      await updateContent({
+        id: note.id,
+        data: {
+          isFavorite: newState,
+        },
+      });
+    } catch (e) {
+      console.error(e);
+      alert("Failed to update favorite status.");
     }
   }
 
@@ -123,6 +158,7 @@ export function DetailView({ note, onClose }: DetailViewProps) {
                 setEditTitle(note.title);
                 setEditDescription(note.description || "");
                 setEditContent(note.content || "");
+                setEditTags(note.tags.map((t) => t.title));
                 setIsEditing(true);
               }}
               className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-sm dark:bg-gray-900 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
@@ -133,9 +169,16 @@ export function DetailView({ note, onClose }: DetailViewProps) {
           <button
             type="button"
             aria-label="Favorite"
-            className="p-1.5 text-gray-500 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:text-amber-500 transition-colors shadow-sm dark:bg-gray-900 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800"
+            onClick={() => handleToggleFavorite(!note.isFavorite)}
+            disabled={isUpdating}
+            className={cn(
+              "p-1.5 border border-gray-200 rounded-lg transition-colors shadow-sm dark:border-gray-700 disabled:opacity-50",
+              note.isFavorite 
+                ? "text-amber-500 bg-amber-50 hover:bg-amber-100 dark:bg-amber-500/10 dark:hover:bg-amber-500/20 border-amber-200 dark:border-amber-500/30" 
+                : "text-gray-500 bg-white hover:bg-gray-50 hover:text-amber-500 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800"
+            )}
           >
-            <Star size={16} />
+            <Star size={16} className={note.isFavorite ? "fill-current" : ""} />
           </button>
           <button
             type="button"
@@ -174,16 +217,39 @@ export function DetailView({ note, onClose }: DetailViewProps) {
 
             {/* Tags */}
             <div className="flex flex-wrap items-center gap-2 mb-6">
-              {note.tags.map((tag) => (
-                <Tag key={tag.id} label={tag.title} colored />
-              ))}
-              <button
-                type="button"
-                aria-label="Add tag"
-                className="flex items-center justify-center w-7 h-7 text-gray-500 border border-gray-200 rounded-full hover:bg-gray-50 transition-colors bg-white shadow-sm dark:bg-gray-900 dark:border-gray-700 dark:hover:bg-gray-800"
-              >
-                <Plus size={14} />
-              </button>
+              {isEditing ? (
+                <>
+                  {editTags.map((tag) => (
+                    <div key={tag} className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 px-2.5 py-1 rounded-full text-[13px] font-medium text-gray-700 dark:text-gray-300">
+                      {tag}
+                      <button type="button" onClick={() => setEditTags(editTags.filter(t => t !== tag))} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ))}
+                  <TagAutocompleteInput editTags={editTags} setEditTags={setEditTags} />
+                </>
+              ) : (
+                <>
+                  {note.tags.map((tag) => (
+                    <Tag key={tag.id} label={tag.title} colored />
+                  ))}
+                  <button
+                    type="button"
+                    aria-label="Add tag"
+                    onClick={() => {
+                      setEditTitle(note.title);
+                      setEditDescription(note.description || "");
+                      setEditContent(note.content || "");
+                      setEditTags(note.tags.map(t => t.title));
+                      setIsEditing(true);
+                    }}
+                    className="flex items-center justify-center w-7 h-7 text-gray-500 border border-gray-200 rounded-full hover:bg-gray-50 transition-colors bg-white shadow-sm dark:bg-gray-900 dark:border-gray-700 dark:hover:bg-gray-800"
+                  >
+                    <Plus size={14} />
+                  </button>
+                </>
+              )}
             </div>
 
             {/* Metadata */}
@@ -265,18 +331,7 @@ export function DetailView({ note, onClose }: DetailViewProps) {
                           placeholder="Add a description..."
                         />
                       ) : (
-                        <>
-                          <p>{note.description}</p>
-                          {/* Fake content to match screenshot if real content is short */}
-                          {note.description && note.description.length < 50 && (
-                            <ul className="list-disc pl-5 space-y-1.5 text-gray-600 dark:text-gray-400">
-                              <li>Horizontal vs Vertical Scaling</li>
-                              <li>Load Balancing Strategies</li>
-                              <li>Caching Layers</li>
-                              <li>Database Sharding</li>
-                            </ul>
-                          )}
-                        </>
+                        <p>{note.description}</p>
                       )}
                     </div>
                     {!isEditing && (
@@ -298,6 +353,7 @@ export function DetailView({ note, onClose }: DetailViewProps) {
                             setEditTitle(note.title);
                             setEditDescription(note.description || "");
                             setEditContent(note.content || "");
+                            setEditTags(note.tags.map((t) => t.title));
                             setIsEditing(true);
                           }}
                           className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
@@ -325,19 +381,8 @@ export function DetailView({ note, onClose }: DetailViewProps) {
                       ))}
                     </div>
                   ) : (
-                    <div className="text-[14px] text-gray-700 dark:text-gray-300 leading-relaxed">
-                      <p className="font-semibold text-gray-900 dark:text-white mb-2">Key takeaways:</p>
-                      <ul className="list-disc pl-5 space-y-1.5 text-gray-600 dark:text-gray-400 mb-6">
-                        <li>Always design for horizontal scaling</li>
-                        <li>Identify bottlenecks early</li>
-                        <li>Caching can improve read performance drastically</li>
-                      </ul>
-                      <p className="font-semibold text-gray-900 dark:text-white mb-2">Architecture patterns to remember:</p>
-                      <ul className="list-disc pl-5 space-y-1.5 text-gray-600 dark:text-gray-400">
-                        <li>Microservices + API Gateway</li>
-                        <li>CDN for static assets</li>
-                        <li>Queue for async processing</li>
-                      </ul>
+                    <div className="text-[14px] text-gray-500 dark:text-gray-500 italic">
+                      No notes added yet. Click edit to add some!
                     </div>
                   )}
                 </div>
@@ -367,9 +412,16 @@ export function DetailView({ note, onClose }: DetailViewProps) {
                     </div>
                     <div className="grid grid-cols-[100px_1fr] text-[13px] items-center">
                       <dt className="text-gray-500 dark:text-gray-400">Visibility</dt>
-                      <dd className="flex items-center gap-1.5 text-gray-900 dark:text-gray-100 font-medium">
-                        <Lock size={12} className="text-gray-400" />
-                        {note.isPublic ? "Public" : "Private"}
+                      <dd className="flex items-center gap-2">
+                        <ToggleSwitch
+                          id="visibility-toggle"
+                          checked={note.isPublic}
+                          onChange={async () => { await handleToggleVisibility(); }}
+                          disabled={isUpdating}
+                        />
+                        <span className="text-gray-900 dark:text-gray-100 font-medium">
+                          {note.isPublic ? "Public" : "Private"}
+                        </span>
                       </dd>
                     </div>
                     <div className="grid grid-cols-[100px_1fr] text-[13px] items-center">
@@ -383,13 +435,38 @@ export function DetailView({ note, onClose }: DetailViewProps) {
                 <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 shadow-sm">
                   <h3 className="text-[15px] font-bold text-gray-900 dark:text-white mb-4">Tags</h3>
                   <div className="flex flex-wrap gap-2 mb-5">
-                    {note.tags.map((tag) => (
-                      <Tag key={tag.id} label={tag.title} colored />
-                    ))}
+                    {isEditing ? (
+                      <>
+                        {editTags.map((tag) => (
+                          <div key={tag} className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 px-2.5 py-1 rounded-full text-[13px] font-medium text-gray-700 dark:text-gray-300">
+                            {tag}
+                            <button type="button" onClick={() => setEditTags(editTags.filter(t => t !== tag))} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                              <X size={12} />
+                            </button>
+                          </div>
+                        ))}
+                        <TagAutocompleteInput editTags={editTags} setEditTags={setEditTags} />
+                      </>
+                    ) : (
+                      note.tags.map((tag) => (
+                        <Tag key={tag.id} label={tag.title} colored />
+                      ))
+                    )}
                   </div>
-                  <button className="flex items-center gap-1.5 text-[13px] text-gray-500 dark:text-gray-400 font-medium hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
-                    <Plus size={14} /> Add Tag
-                  </button>
+                  {!isEditing && (
+                    <button 
+                      onClick={() => {
+                        setEditTitle(note.title);
+                        setEditDescription(note.description || "");
+                        setEditContent(note.content || "");
+                        setEditTags(note.tags.map(t => t.title));
+                        setIsEditing(true);
+                      }}
+                      className="flex items-center gap-1.5 text-[13px] text-gray-500 dark:text-gray-400 font-medium hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                    >
+                      <Plus size={14} /> Add Tag
+                    </button>
+                  )}
                 </div>
 
                 {/* Links Card */}
@@ -417,21 +494,23 @@ export function DetailView({ note, onClose }: DetailViewProps) {
           )}
 
           {activeTab === "notes" && (
-            <div className="flex flex-col items-center py-12 text-center">
-              <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center mb-4">
-                <Edit3 size={20} className="text-gray-400 dark:text-gray-500" />
-              </div>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">View notes in Overview or edit them here.</p>
-              
+            <div className="w-full">
               {isEditing ? (
-                <div className="w-full max-w-3xl text-left">
+                <div className="w-full max-w-3xl mx-auto text-left py-6">
                   <textarea
                     value={editContent}
                     onChange={(e) => setEditContent(e.target.value)}
-                    className="w-full h-64 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 text-[14px] text-gray-900 dark:text-gray-100"
+                    className="w-full h-64 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 text-[14px] text-gray-900 dark:text-gray-100 shadow-sm"
                     placeholder="Write your notes here..."
                   />
-                  <div className="mt-4 flex justify-end">
+                  <div className="mt-4 flex justify-end gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setIsEditing(false)}
+                      className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors text-sm font-medium"
+                    >
+                      Cancel
+                    </button>
                     <button
                       type="button"
                       onClick={handleSave}
@@ -442,19 +521,49 @@ export function DetailView({ note, onClose }: DetailViewProps) {
                     </button>
                   </div>
                 </div>
+              ) : note.content ? (
+                <div className="w-full max-w-3xl mx-auto py-6">
+                  <div className="flex justify-end mb-4">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditTitle(note.title);
+                        setEditDescription(note.description || "");
+                        setEditContent(note.content || "");
+                        setEditTags(note.tags.map((t) => t.title));
+                        setIsEditing(true);
+                      }}
+                      className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-sm dark:bg-gray-900 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
+                    >
+                      <Edit3 size={14} /> Edit Notes
+                    </button>
+                  </div>
+                  <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 shadow-sm">
+                    <div className="whitespace-pre-wrap text-[14px] text-gray-700 dark:text-gray-300 leading-relaxed">
+                      {note.content}
+                    </div>
+                  </div>
+                </div>
               ) : (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditTitle(note.title);
-                    setEditDescription(note.description || "");
-                    setEditContent(note.content || "");
-                    setIsEditing(true);
-                  }}
-                  className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 text-sm font-medium"
-                >
-                  Edit Notes
-                </button>
+                <div className="flex flex-col items-center py-12 text-center">
+                  <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center mb-4">
+                    <Edit3 size={20} className="text-gray-400 dark:text-gray-500" />
+                  </div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">No notes yet. Click below to add some.</p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditTitle(note.title);
+                      setEditDescription(note.description || "");
+                      setEditContent(note.content || "");
+                      setEditTags(note.tags.map((t) => t.title));
+                      setIsEditing(true);
+                    }}
+                    className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 text-sm font-medium"
+                  >
+                    Add Notes
+                  </button>
+                </div>
               )}
             </div>
           )}
