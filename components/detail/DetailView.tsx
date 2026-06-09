@@ -17,10 +17,13 @@ import {
   Unlock,
   Maximize2,
   X,
+  Trash2,
 } from "lucide-react";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { Tag } from "@/components/common/Tag";
 import { TagAutocompleteInput } from "@/components/common/TagAutocompleteInput";
 import { ToggleSwitch } from "@/components/common/ToggleSwitch";
+import { NoteEditor } from "./NoteEditor";
 import { cn, formatDate, getSourceLabel, extractDomain } from "@/lib/utils";
 import { SiYoutube, SiX, SiNotion, SiGoogledocs } from "@icons-pack/react-simple-icons";
 import type { Note, SourceType } from "@/lib/types";
@@ -61,6 +64,10 @@ export function DetailView({ note, onClose }: DetailViewProps) {
   const [editDescription, setEditDescription] = useState(note.description || "");
   const [editContent, setEditContent] = useState(note.content || "");
   const [editTags, setEditTags] = useState<string[]>(note.tags.map((t) => t.title));
+  
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [editorTarget, setEditorTarget] = useState<"content" | "description" | null>(null);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
   const { mutateAsync: updateContent, isPending: isUpdating } = useUpdateContent();
 
@@ -143,14 +150,23 @@ export function DetailView({ note, onClose }: DetailViewProps) {
 
         <div className="flex items-center gap-2">
           {isEditing ? (
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={isUpdating}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-50"
-            >
-              {isUpdating ? "Saving..." : "Save"}
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={() => setIsEditing(false)}
+                className="px-3 py-1.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 dark:text-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-lg transition-colors shadow-sm"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={isUpdating}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-50"
+              >
+                {isUpdating ? "Saving..." : "Save"}
+              </button>
+            </>
           ) : (
             <button
               type="button"
@@ -180,13 +196,36 @@ export function DetailView({ note, onClose }: DetailViewProps) {
           >
             <Star size={16} className={note.isFavorite ? "fill-current" : ""} />
           </button>
-          <button
-            type="button"
-            aria-label="More options"
-            className="p-1.5 text-gray-500 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-sm dark:bg-gray-900 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800"
-          >
-            <MoreHorizontal size={16} />
-          </button>
+          <DropdownMenu.Root>
+            <DropdownMenu.Trigger asChild>
+              <button
+                type="button"
+                aria-label="More options"
+                className="p-1.5 text-gray-500 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-sm dark:bg-gray-900 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 outline-none focus:ring-2 focus:ring-blue-500/30"
+              >
+                <MoreHorizontal size={16} />
+              </button>
+            </DropdownMenu.Trigger>
+            
+            <DropdownMenu.Portal>
+              <DropdownMenu.Content
+                align="end"
+                sideOffset={8}
+                className="w-40 z-50 bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 p-1 animate-in fade-in zoom-in-95 duration-200"
+              >
+                <DropdownMenu.Item
+                  className="flex items-center gap-2 px-3 py-2 text-[13px] font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg cursor-pointer outline-none transition-colors"
+                  onClick={() => {
+                    // Frontend placeholder for delete functionality
+                    console.log("Delete clicked for note:", note.id);
+                    onClose();
+                  }}
+                >
+                  <Trash2 size={14} /> Delete
+                </DropdownMenu.Item>
+              </DropdownMenu.Content>
+            </DropdownMenu.Portal>
+          </DropdownMenu.Root>
         </div>
       </div>
 
@@ -319,9 +358,36 @@ export function DetailView({ note, onClose }: DetailViewProps) {
                 {/* Description Card */}
                 {(note.description || isEditing) && (
                   <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 shadow-sm">
-                    <h3 className="text-[15px] font-bold text-gray-900 dark:text-white mb-4">
-                      Description
-                    </h3>
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-[15px] font-bold text-gray-900 dark:text-white">
+                        Description
+                      </h3>
+                      {!isEditing && (
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => {
+                              setEditTitle(note.title);
+                              setEditDescription(note.description || "");
+                              setEditContent(note.content || "");
+                              setEditTags(note.tags.map((t) => t.title));
+                              setIsEditing(true);
+                            }}
+                            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                          >
+                            <Edit3 size={16} />
+                          </button>
+                          <button 
+                            onClick={() => {
+                              setEditorTarget("description");
+                              setIsEditorOpen(true);
+                            }}
+                            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                          >
+                            <Maximize2 size={16} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
                     <div className="text-[14px] text-gray-700 dark:text-gray-300 leading-relaxed space-y-4">
                       {isEditing ? (
                         <textarea
@@ -331,12 +397,17 @@ export function DetailView({ note, onClose }: DetailViewProps) {
                           placeholder="Add a description..."
                         />
                       ) : (
-                        <p>{note.description}</p>
+                        <p className={cn(!isDescriptionExpanded && "line-clamp-3")}>
+                          {note.description}
+                        </p>
                       )}
                     </div>
-                    {!isEditing && (
-                      <button className="mt-4 text-[14px] text-blue-600 dark:text-blue-400 font-medium hover:underline">
-                        Show more
+                    {!isEditing && note.description && note.description.length > 150 && (
+                      <button 
+                        onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                        className="mt-4 text-[14px] text-blue-600 dark:text-blue-400 font-medium hover:underline"
+                      >
+                        {isDescriptionExpanded ? "Show less" : "Show more"}
                       </button>
                     )}
                   </div>
@@ -360,7 +431,13 @@ export function DetailView({ note, onClose }: DetailViewProps) {
                         >
                           <Edit3 size={16} />
                         </button>
-                        <button className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                        <button 
+                          onClick={() => {
+                            setEditorTarget("content");
+                            setIsEditorOpen(true);
+                          }}
+                          className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                        >
                           <Maximize2 size={16} />
                         </button>
                       </div>
@@ -578,6 +655,25 @@ export function DetailView({ note, onClose }: DetailViewProps) {
           )}
         </div>
       </div>
+      
+      {/* Expanded Editor Modal */}
+      {isEditorOpen && editorTarget && (
+        <NoteEditor
+          editorType={editorTarget}
+          initialTitle={note.title}
+          initialContent={editorTarget === "content" ? (note.content || "") : (note.description || "")}
+          onSave={async (title, content) => {
+            await updateContent({
+              id: note.id,
+              data: {
+                title,
+                ...(editorTarget === "content" ? { content } : { description: content })
+              }
+            });
+          }}
+          onClose={() => setIsEditorOpen(false)}
+        />
+      )}
     </div>
   );
 }

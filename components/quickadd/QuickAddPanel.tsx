@@ -61,8 +61,8 @@ export function QuickAddPanel({ onSaved, prefilledTag, onClearPrefilledTag }: Qu
 
   // Handle prefilled tag
   useEffect(() => {
-    if (prefilledTag && !tagPills.includes(prefilledTag)) {
-      setTagPills((prev) => [...prev, prefilledTag]);
+    if (prefilledTag) {
+      setTagPills((prev) => (prev.includes(prefilledTag) ? prev : [...prev, prefilledTag]));
     }
     return () => {
       if (prefilledTag) onClearPrefilledTag?.();
@@ -317,7 +317,7 @@ export function QuickAddPanel({ onSaved, prefilledTag, onClearPrefilledTag }: Qu
                         key={tag}
                         type="button"
                         onClick={() => addSuggestedTag(tag)}
-                        className="text-[11px] px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-full transition-colors font-semibold capitalize"
+                        className="text-[11px] px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-full transition-colors font-semibold"
                       >
                         {tag}
                       </button>

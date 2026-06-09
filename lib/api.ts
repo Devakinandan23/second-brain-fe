@@ -34,6 +34,20 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
+// Handle auth expiration
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("sb_token");
+        window.dispatchEvent(new Event("session_expired"));
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Auth
 export async function signin(data: SigninRequest): Promise<SigninResponse> {
   const res = await apiClient.post<SigninResponse>("/signin", data);

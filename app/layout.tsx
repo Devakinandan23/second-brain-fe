@@ -15,6 +15,8 @@ export const metadata: Metadata = {
     "Capture, organize, and retrieve everything you learn. A premium PKM system built for developers.",
 };
 
+import { SessionHandler } from "@/components/auth/SessionHandler";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -23,7 +25,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.className} suppressHydrationWarning>
       <body className="min-h-screen bg-[#FAFAFA] text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100 transition-colors">
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          <SessionHandler />
+        </Providers>
       </body>
     </html>
   );

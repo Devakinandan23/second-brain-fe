@@ -192,7 +192,7 @@ export function Sidebar({
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto flex flex-col">
+      <div className="flex-1 overflow-y-auto flex flex-col [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
         {/* ── Go Premium ── */}
         <div className="mx-3 mt-3 mb-1">
           <button
@@ -303,11 +303,11 @@ export function Sidebar({
         </div>
 
         {/* ── Tags ── */}
-        <div className="px-3 mt-4 flex-1">
+        <div className="px-3 mt-2 flex-1 pb-4">
           <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 px-2.5 mb-1.5">
             Tags
           </p>
-          <div className="space-y-0.5">
+          <div className="space-y-0.5 max-h-[88px] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
             {tags.map(([tag, count], i) => (
               <button
                 key={tag}
@@ -327,7 +327,7 @@ export function Sidebar({
                   )}
                   aria-hidden="true"
                 />
-                <span className="flex-1 truncate capitalize">{tag}</span>
+                <span className="flex-1 truncate">{tag}</span>
                 <span className={cn(
                   "text-xs tabular-nums",
                   activeTag === tag ? "text-blue-500" : "text-gray-400"
@@ -336,7 +336,9 @@ export function Sidebar({
                 </span>
               </button>
             ))}
+          </div>
             
+          <div className="mt-0 pb-2">
             {isAddingTag ? (
               <form 
                 onSubmit={(e) => {
@@ -357,17 +359,16 @@ export function Sidebar({
                   onChange={(e) => setNewTagInput(e.target.value)}
                   onBlur={() => setIsAddingTag(false)}
                   placeholder="Tag name..."
-                  className="w-full text-[13px] bg-gray-100 border border-gray-200 rounded px-2 py-1 outline-none focus:border-blue-400"
+                  className="w-full text-[13px] bg-gray-100 border border-gray-200 rounded px-2 py-1 outline-none focus:border-blue-400 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                 />
               </form>
             ) : (
               <button
                 type="button"
                 onClick={() => setIsAddingTag(true)}
-                className="flex items-center gap-2.5 px-2.5 py-[7px] rounded-lg text-[13px] text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors w-full text-left"
+                className="flex items-center gap-2 px-2.5 py-1.5 w-full text-left text-[13px] text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-gray-300 rounded-lg transition-colors font-medium"
               >
-                <Plus size={13} className="shrink-0" />
-                <span>New Tag</span>
+                <Plus size={14} /> New Tag
               </button>
             )}
           </div>

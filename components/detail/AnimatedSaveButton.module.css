@@ -1,0 +1,102 @@
+.animatedButton {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 32px;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  background-color: transparent;
+  color: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+  box-shadow: 0 0 0 2px #2260ff;
+  min-width: 120px;
+}
+
+:global(.dark) .animatedButton {
+  box-shadow: 0 0 0 2px #3b82f6;
+}
+
+.animatedButton svg {
+  position: absolute;
+  width: 16px; /* Adjusted from 24px for smaller save button */
+  fill: #fff;
+  z-index: 9;
+  transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.animatedButton .arr1 {
+  right: 16px;
+}
+
+.animatedButton .arr2 {
+  left: -25%;
+}
+
+.animatedButton .circle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  background-color: #2260ff;
+  border-radius: 50%;
+  opacity: 0;
+  transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+:global(.dark) .animatedButton .circle {
+  background-color: #3b82f6;
+}
+
+.animatedButton .text {
+  position: relative;
+  z-index: 1;
+  transform: translateX(-8px);
+  transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+  color: #2260ff;
+  font-weight: 600;
+}
+
+:global(.dark) .animatedButton .text {
+  color: #3b82f6;
+}
+
+.animatedButton:hover {
+  box-shadow: 0 0 0 12px transparent;
+  color: #fff;
+  border-radius: 12px;
+}
+
+.animatedButton:hover .arr1 {
+  right: -25%;
+}
+
+.animatedButton:hover .arr2 {
+  left: 16px;
+}
+
+.animatedButton:hover .text {
+  transform: translateX(12px);
+  color: #fff;
+}
+
+.animatedButton:hover svg {
+  fill: #fff;
+}
+
+.animatedButton:active {
+  transform: scale(0.95);
+  box-shadow: 0 0 0 4px #2260ff;
+}
+
+.animatedButton:hover .circle {
+  width: 220px;
+  height: 220px;
+  opacity: 1;
+}
