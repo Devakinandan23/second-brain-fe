@@ -66,6 +66,10 @@ export interface GetContentResponse {
   content: Note[];
 }
 
+export interface GetTrashResponse {
+  content: Note[];
+}
+
 export interface CreateContentRequest {
   // Backend contentSchema: link is required z.url()
   link: string;
@@ -99,7 +103,7 @@ export interface UpdateContentRequest {
 }
 
 export interface DeleteContentRequest {
-  contentId: string;
+  id: string;
 }
 
 export interface ShareLinkRequest {

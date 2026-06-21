@@ -13,19 +13,24 @@ import type { Note, SidebarSection, ViewMode } from "@/lib/types";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [username, setUsername] = useState("User");
+  const [username, setUsername] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("sb_username") || "User";
+    }
+    return "User";
+  });
   const [isAuthChecked, setIsAuthChecked] = useState(false);
 
   // Auth guard — client-side since JWT is in localStorage
   useEffect(() => {
     const token = localStorage.getItem("sb_token");
-    const storedUsername = localStorage.getItem("sb_username");
     if (!token) {
       router.replace("/signin");
       return;
     }
-    if (storedUsername) setUsername(storedUsername);
-    setIsAuthChecked(true);
+    // Avoid calling setState synchronously in effect
+    const timer = setTimeout(() => setIsAuthChecked(true), 0);
+    return () => clearTimeout(timer);
   }, [router]);
 
   // UI state

@@ -1,6 +1,7 @@
 "use client";
 
 import { ContentCard } from "./ContentCard";
+import { TrashList } from "./TrashList";
 import type { Note, SidebarSection, SourceType } from "@/lib/types";
 import { groupNotesByDate } from "@/lib/utils";
 import { FileText } from "lucide-react";
@@ -97,6 +98,11 @@ export function ContentList({
   activeTag = null,
   searchQuery,
 }: ContentListProps) {
+  // Trash has its own data source and UI — delegate entirely
+  if (activeSection === "trash") {
+    return <TrashList />;
+  }
+
   if (isLoading) {
     return (
       <div className="flex-1 overflow-y-auto">

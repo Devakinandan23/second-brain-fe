@@ -12,6 +12,7 @@ import type {
   ShareLinkRequest,
   ShareLink,
   SharedBrainResponse,
+  GetTrashResponse,
 } from "./types";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
@@ -84,11 +85,9 @@ export async function updateContent(
 }
 
 export async function deleteContent(
-  data: DeleteContentRequest
+  id: string
 ): Promise<{ message: string }> {
-  const res = await apiClient.delete<{ message: string }>("/content", {
-    data,
-  });
+  const res = await apiClient.delete<{ message: string }>(`/content/${id}`);
   return res.data;
 }
 
@@ -106,6 +105,26 @@ export async function getSharedBrain(
   const res = await apiClient.get<SharedBrainResponse>(
     `/brain/${shareLink}`
   );
+  return res.data;
+}
+
+// Trash
+export async function getTrash(): Promise<GetTrashResponse> {
+  const res = await apiClient.get<GetTrashResponse>("/trash");
+  return res.data;
+}
+
+export async function restoreFromTrash(
+  id: string
+): Promise<{ message: string }> {
+  const res = await apiClient.patch<{ message: string }>(`/trash/${id}/restore`, {});
+  return res.data;
+}
+
+export async function permanentlyDelete(
+  id: string
+): Promise<{ message: string }> {
+  const res = await apiClient.delete<{ message: string }>(`/trash/${id}`);
   return res.data;
 }
 

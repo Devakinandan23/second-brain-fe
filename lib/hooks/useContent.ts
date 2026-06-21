@@ -12,6 +12,7 @@ import {
   deleteContent,
 } from "../api";
 import type { CreateContentRequest, UpdateContentRequest } from "../types";
+import { TRASH_QUERY_KEY } from "./useTrash";
 
 export const CONTENT_QUERY_KEY = ["content"] as const;
 
@@ -50,9 +51,13 @@ export function useUpdateContent() {
 export function useDeleteContent() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (contentId: string) => deleteContent({ contentId }),
+    mutationFn: ({id}:{id: string}) => deleteContent(id),
     onSuccess: () => {
+      // Invalidate both the main content list and the trash list —
+      // deleting a note soft-deletes it (moves to trash), so the
+      // trash query must re-fetch to show the newly trashed item.
       qc.invalidateQueries({ queryKey: CONTENT_QUERY_KEY });
+      qc.invalidateQueries({ queryKey: TRASH_QUERY_KEY });
     },
   });
 }

@@ -23,11 +23,12 @@ import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { Tag } from "@/components/common/Tag";
 import { TagAutocompleteInput } from "@/components/common/TagAutocompleteInput";
 import { ToggleSwitch } from "@/components/common/ToggleSwitch";
+import { ConfirmDeleteDialog } from "@/components/common/ConfirmDeleteDialog";
 import { NoteEditor } from "./NoteEditor";
 import { cn, formatDate, getSourceLabel, extractDomain } from "@/lib/utils";
 import { SiYoutube, SiX, SiNotion, SiGoogledocs } from "@icons-pack/react-simple-icons";
 import type { Note, SourceType } from "@/lib/types";
-import { useContent, useUpdateContent } from "@/lib/hooks/useContent";
+import { useContent, useDeleteContent, useUpdateContent } from "@/lib/hooks/useContent";
 
 const SOURCE_ICONS: Record<SourceType, React.ReactNode> = {
   YOUTUBE: <SiYoutube size={18} className="text-[#FF0000]" />,
@@ -64,12 +65,14 @@ export function DetailView({ note, onClose }: DetailViewProps) {
   const [editDescription, setEditDescription] = useState(note.description || "");
   const [editContent, setEditContent] = useState(note.content || "");
   const [editTags, setEditTags] = useState<string[]>(note.tags.map((t) => t.title));
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [editorTarget, setEditorTarget] = useState<"content" | "description" | null>(null);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
   const { mutateAsync: updateContent, isPending: isUpdating } = useUpdateContent();
+  const { mutateAsync: deleteContent, isPending: isDeleting } = useDeleteContent();
 
   async function handleSave() {
     try {
@@ -86,6 +89,17 @@ export function DetailView({ note, onClose }: DetailViewProps) {
     } catch (e) {
       console.error(e);
       alert("Failed to save changes.");
+    }
+  }
+
+  async function handleDelete() {
+    try {
+      await deleteContent({ id: note.id });
+      // Close the detail panel — the item no longer exists in the main content list
+      onClose();
+    } catch (e) {
+      console.error(e);
+      alert("Failed to delete.");
     }
   }
 
@@ -215,11 +229,7 @@ export function DetailView({ note, onClose }: DetailViewProps) {
               >
                 <DropdownMenu.Item
                   className="flex items-center gap-2 px-3 py-2 text-[13px] font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg cursor-pointer outline-none transition-colors"
-                  onClick={() => {
-                    // Frontend placeholder for delete functionality
-                    console.log("Delete clicked for note:", note.id);
-                    onClose();
-                  }}
+                  onClick={() => setShowDeleteDialog(true)}
                 >
                   <Trash2 size={14} /> Delete
                 </DropdownMenu.Item>
@@ -672,6 +682,25 @@ export function DetailView({ note, onClose }: DetailViewProps) {
             });
           }}
           onClose={() => setIsEditorOpen(false)}
+        />
+      )}
+
+      {/* Move-to-trash confirmation dialog */}
+      {showDeleteDialog && (
+        <ConfirmDeleteDialog
+          title="Move to Trash?"
+          description={
+            <>
+              <span className="font-medium text-gray-700 dark:text-gray-300 line-clamp-2">
+                &ldquo;{note.title}&rdquo;
+              </span>{" "}
+              will be moved to Trash. You can restore it later or delete it permanently from there.
+            </>
+          }
+          confirmLabel="Move to Trash"
+          isConfirming={isDeleting}
+          onConfirm={handleDelete}
+          onCancel={() => setShowDeleteDialog(false)}
         />
       )}
     </div>
