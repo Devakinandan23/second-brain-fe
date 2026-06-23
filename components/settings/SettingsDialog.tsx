@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { AccountSettings } from "./AccountSettings";
 import { AppearanceSettings } from "./AppearanceSettings";
+import { ExportSettings } from "./ExportSettings";
 import { cn } from "@/lib/utils";
 
 type SettingsSection =
@@ -22,6 +23,7 @@ type SettingsSection =
   | "entries"
   | "journals"
   | "import"
+  | "export"
   | "appearance"
   | "prompts"
   | "ai"
@@ -40,6 +42,7 @@ const NAV_ITEMS: SettingsNavItem[] = [
   { id: "entries", label: "Entries", icon: <BookOpen size={15} /> },
   { id: "journals", label: "Journals", icon: <BookOpen size={15} /> },
   { id: "import", label: "Import", icon: <Download size={15} /> },
+  { id: "export", label: "Export", icon: <Download size={15} /> },
   { id: "appearance", label: "Appearance", icon: <Palette size={15} /> },
   { id: "prompts", label: "Prompts", icon: <MessageSquare size={15} /> },
   { id: "ai", label: "AI Features", icon: <Cpu size={15} /> },
@@ -127,7 +130,8 @@ export function SettingsDialog({ open, onClose, username }: SettingsDialogProps)
                 <AccountSettings username={username} />
               )}
               {activeSection === "appearance" && <AppearanceSettings />}
-              {activeSection !== "account" && activeSection !== "appearance" && (
+              {activeSection === "export" && <ExportSettings />}
+              {activeSection !== "account" && activeSection !== "appearance" && activeSection !== "export" && (
                 <div className="flex flex-col items-center justify-center h-48 text-center">
                   <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center mb-3">
                     <Settings size={18} className="text-gray-400" />
