@@ -9,6 +9,7 @@ import { QuickAddPanel } from "@/components/quickadd/QuickAddPanel";
 import { DetailView } from "@/components/detail/DetailView";
 import { SettingsDialog } from "@/components/settings/SettingsDialog";
 import { useContent } from "@/lib/hooks/useContent";
+import { cn } from "@/lib/utils";
 import type { Note, SidebarSection, ViewMode } from "@/lib/types";
 
 export default function DashboardPage() {
@@ -35,7 +36,7 @@ export default function DashboardPage() {
 
   // UI state
   const [activeSection, setActiveSection] = useState<SidebarSection>("all");
-  const [activeTag, setActiveTag] = useState<string | null>(null);
+  const [activeTags, setActiveTags] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
@@ -94,11 +95,6 @@ export default function DashboardPage() {
 
   const handleSectionChange = useCallback((s: SidebarSection) => {
     setActiveSection(s);
-    setActiveTag(null);
-  }, []);
-
-  const handleTagSelect = useCallback((tag: string) => {
-    setActiveTag(prev => prev === tag ? null : tag);
   }, []);
 
   const handleSelectNote = useCallback((note: Note) => {
@@ -106,13 +102,8 @@ export default function DashboardPage() {
   }, []);
 
   const handleAddContent = useCallback(() => {
-    setSelectedNoteId(null); // Show Quick Add panel
-    setPrefilledTag(null);
-  }, []);
-
-  const handleAddTagFromSidebar = useCallback((tag: string) => {
     setSelectedNoteId(null);
-    setPrefilledTag(tag);
+    setPrefilledTag(null);
   }, []);
 
   if (!isAuthChecked) {
@@ -139,9 +130,8 @@ export default function DashboardPage() {
           onSectionChange={handleSectionChange}
           onOpenSettings={() => setSettingsOpen(true)}
           notes={notes}
-          onAddTag={handleAddTagFromSidebar}
-          activeTag={activeTag}
-          onTagSelect={handleTagSelect}
+          activeTags={activeTags}
+          onTagsSelect={setActiveTags}
         />
       )}
 
@@ -163,8 +153,11 @@ export default function DashboardPage() {
         <div className="flex flex-1 overflow-hidden">
           {/* Content list */}
           <div
-            className="flex flex-col bg-white dark:bg-gray-900 overflow-hidden shrink-0 transition-colors"
-            style={{ width: contentWidth }}
+            className={cn(
+              "flex flex-col bg-white dark:bg-gray-900 overflow-hidden transition-colors",
+              (viewMode !== "list" && !selectedNote) ? "flex-1" : "shrink-0"
+            )}
+            style={(viewMode !== "list" && !selectedNote) ? undefined : { width: contentWidth }}
           >
             <ContentList
               notes={notes}
@@ -172,32 +165,39 @@ export default function DashboardPage() {
               selectedNoteId={selectedNoteId}
               onSelectNote={handleSelectNote}
               activeSection={activeSection}
-              activeTag={activeTag}
+              activeTags={activeTags}
               searchQuery={searchQuery}
+              viewMode={viewMode}
             />
           </div>
 
-          {/* Resizer */}
-          <div
-            className="w-1 cursor-col-resize hover:bg-blue-400 active:bg-blue-500 border-r border-gray-200 dark:border-gray-800 shrink-0 z-10 transition-colors"
-            onMouseDown={startResize}
-          />
+          {/* Resizer - only show if right panel is visible */}
+          {(viewMode === "list" || selectedNote) && (
+            <div
+              className="w-1 cursor-col-resize hover:bg-blue-400 active:bg-blue-500 border-r border-gray-200 dark:border-gray-800 shrink-0 z-10 transition-colors"
+              onMouseDown={startResize}
+            />
+          )}
 
           {/* Right panel: Quick Add or Detail View */}
-          <div className="flex-1 overflow-hidden">
-            {selectedNote ? (
-              <DetailView
-                note={selectedNote}
-                onClose={() => setSelectedNoteId(null)}
-              />
-            ) : (
-              <QuickAddPanel 
-                onSaved={() => {}} 
-                prefilledTag={prefilledTag} 
-                onClearPrefilledTag={() => setPrefilledTag(null)} 
-              />
-            )}
-          </div>
+          {/* In list view, always show right panel (Detail or QuickAdd) */}
+          {/* In grid/calendar view, only show right panel if a note is selected */}
+          {(viewMode === "list" || selectedNote) && (
+            <div className="flex-1 overflow-hidden">
+              {selectedNote ? (
+                <DetailView
+                  note={selectedNote}
+                  onClose={() => setSelectedNoteId(null)}
+                />
+              ) : (
+                <QuickAddPanel 
+                  onSaved={() => {}} 
+                  prefilledTag={prefilledTag} 
+                  onClearPrefilledTag={() => setPrefilledTag(null)} 
+                />
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

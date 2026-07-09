@@ -2,7 +2,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import type { SidebarSection, Note, SourceType } from "@/lib/types";
 import { SiYoutube, SiX } from "@icons-pack/react-simple-icons";
-import { getTagColor } from "@/components/common/Tag";
+import { TagManagerDialog } from "@/components/tags";
 import {
   Inbox,
   Sun,
@@ -11,15 +11,14 @@ import {
   Trash2,
   FileText,
   Newspaper,
-  Video,
-  MessageCircle,
   FolderOpen,
   Settings,
   HelpCircle,
-  Plus,
+  Tag,
   Star,
   ChevronRight,
   CloudUpload,
+  X,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -27,25 +26,12 @@ interface SidebarProps {
   onSectionChange: (s: SidebarSection) => void;
   onOpenSettings: () => void;
   notes: Note[];
-  onAddTag?: (tag: string) => void;
-  activeTag?: string | null;
-  onTagSelect?: (tag: string) => void;
+  activeTags: string[];
+  onTagsSelect: (tags: string[]) => void;
 }
 
 function countBySource(notes: Note[], source: SourceType) {
   return notes.filter((n) => n.sourceType === source).length;
-}
-
-function getAllTags(notes: Note[]) {
-  const tagMap: Record<string, number> = {};
-  for (const note of notes) {
-    for (const tag of note.tags) {
-      tagMap[tag.title] = (tagMap[tag.title] ?? 0) + 1;
-    }
-  }
-  return Object.entries(tagMap)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 6);
 }
 
 // Nav row item used for the primary nav
@@ -147,14 +133,11 @@ export function Sidebar({
   onSectionChange,
   onOpenSettings,
   notes,
-  onAddTag,
-  activeTag,
-  onTagSelect,
+  activeTags,
+  onTagsSelect,
 }: SidebarProps) {
-  const [isAddingTag, setIsAddingTag] = useState(false);
-  const [newTagInput, setNewTagInput] = useState("");
+  const [tagManagerOpen, setTagManagerOpen] = useState(false);
 
-  const tags = getAllTags(notes);
   const inboxCount = notes.filter((n) => {
     const d = new Date(n.createdAt);
     return Date.now() - d.getTime() < 86400000 * 2;
@@ -302,77 +285,66 @@ export function Sidebar({
           </nav>
         </div>
 
-        {/* ── Tags ── */}
-        <div className="px-3 mt-2 flex-1 pb-4">
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 px-2.5 mb-1.5">
-            Tags
-          </p>
-          <div className="space-y-0.5 max-h-[88px] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
-            {tags.map(([tag, count], i) => (
-              <button
-                key={tag}
-                type="button"
-                onClick={() => onTagSelect?.(tag)}
-                className={cn(
-                  "flex items-center gap-2.5 px-2.5 py-[7px] rounded-lg text-[13px] transition-colors w-full text-left",
-                  activeTag === tag
-                    ? "bg-blue-50 text-blue-700 font-medium"
-                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-800"
-                )}
-              >
-                <span
-                  className={cn(
-                    "w-2.5 h-2.5 rounded-full shrink-0",
-                    getTagColor(tag).dot
-                  )}
-                  aria-hidden="true"
-                />
-                <span className="flex-1 truncate">{tag}</span>
-                <span className={cn(
-                  "text-xs tabular-nums",
-                  activeTag === tag ? "text-blue-500" : "text-gray-400"
-                )}>
-                  {count}
+        {/* ── Filter by Tag trigger ── */}
+        <div className="px-3 mt-2 pb-2">
+          {activeTags.length > 0 ? (
+            <div className="flex flex-col gap-1.5 p-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/50 rounded-lg">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400">
+                  Filtered by tags
                 </span>
-              </button>
-            ))}
-          </div>
-            
-          <div className="mt-0 pb-2">
-            {isAddingTag ? (
-              <form 
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  if (newTagInput.trim() && onAddTag) {
-                    onAddTag(newTagInput.trim());
-                  }
-                  setNewTagInput("");
-                  setIsAddingTag(false);
-                }}
-                className="flex items-center gap-2.5 px-2.5 py-[3px]"
-              >
-                <input
-                  // eslint-disable-next-line jsx-a11y/no-autofocus
-                  autoFocus
-                  type="text"
-                  value={newTagInput}
-                  onChange={(e) => setNewTagInput(e.target.value)}
-                  onBlur={() => setIsAddingTag(false)}
-                  placeholder="Tag name..."
-                  className="w-full text-[13px] bg-gray-100 border border-gray-200 rounded px-2 py-1 outline-none focus:border-blue-400 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                />
-              </form>
-            ) : (
+                <button
+                  type="button"
+                  onClick={() => onTagsSelect([])}
+                  className="p-1 text-blue-500 hover:text-blue-700 hover:bg-blue-100 dark:hover:bg-blue-800 rounded-md transition-colors"
+                  aria-label="Clear all filters"
+                >
+                  <X size={12} />
+                </button>
+              </div>
+              
+              <div className="flex flex-wrap gap-1">
+                {activeTags.map((tag) => (
+                  <span key={tag} className="flex items-center gap-1 text-[12px] font-medium bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded flex-1 min-w-0">
+                    <Tag size={10} className="shrink-0" />
+                    <span className="truncate">{tag}</span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onTagsSelect(activeTags.filter((t) => t !== tag));
+                      }}
+                      className="ml-auto p-0.5 hover:bg-blue-200 dark:hover:bg-blue-500/40 rounded-sm shrink-0"
+                    >
+                      <X size={10} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+              
               <button
                 type="button"
-                onClick={() => setIsAddingTag(true)}
-                className="flex items-center gap-2 px-2.5 py-1.5 w-full text-left text-[13px] text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-gray-300 rounded-lg transition-colors font-medium"
+                onClick={() => setTagManagerOpen(true)}
+                className="mt-1 text-[11px] font-medium text-blue-600 dark:text-blue-400 hover:underline text-left"
               >
-                <Plus size={14} /> New Tag
+                Edit filters...
               </button>
-            )}
-          </div>
+            </div>
+          ) : (
+            <NavRow
+              icon={<Tag size={15} />}
+              label="Filter by Tag"
+              onClick={() => setTagManagerOpen(true)}
+            />
+          )}
         </div>
+
+        <TagManagerDialog
+          open={tagManagerOpen}
+          onClose={() => setTagManagerOpen(false)}
+          onApplyFilter={(tags) => onTagsSelect(tags)}
+          initialFilterTags={activeTags}
+        />
       </div>
 
       {/* ── Bottom nav ── */}

@@ -24,6 +24,7 @@ import { Tag } from "@/components/common/Tag";
 import { TagAutocompleteInput } from "@/components/common/TagAutocompleteInput";
 import { ToggleSwitch } from "@/components/common/ToggleSwitch";
 import { ConfirmDeleteDialog } from "@/components/common/ConfirmDeleteDialog";
+import { TagManagerDialog } from "@/components/tags";
 import { NoteEditor } from "./NoteEditor";
 import { cn, formatDate, getSourceLabel, extractDomain } from "@/lib/utils";
 import { SiYoutube, SiX, SiNotion, SiGoogledocs } from "@icons-pack/react-simple-icons";
@@ -70,6 +71,7 @@ export function DetailView({ note, onClose }: DetailViewProps) {
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [editorTarget, setEditorTarget] = useState<"content" | "description" | null>(null);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const [isTagManagerOpen, setIsTagManagerOpen] = useState(false);
 
   const { mutateAsync: updateContent, isPending: isUpdating } = useUpdateContent();
   const { mutateAsync: deleteContent, isPending: isDeleting } = useDeleteContent();
@@ -285,14 +287,8 @@ export function DetailView({ note, onClose }: DetailViewProps) {
                   ))}
                   <button
                     type="button"
-                    aria-label="Add tag"
-                    onClick={() => {
-                      setEditTitle(note.title);
-                      setEditDescription(note.description || "");
-                      setEditContent(note.content || "");
-                      setEditTags(note.tags.map(t => t.title));
-                      setIsEditing(true);
-                    }}
+                    aria-label="Manage tags"
+                    onClick={() => setIsTagManagerOpen(true)}
                     className="flex items-center justify-center w-7 h-7 text-gray-500 border border-gray-200 rounded-full hover:bg-gray-50 transition-colors bg-white shadow-sm dark:bg-gray-900 dark:border-gray-700 dark:hover:bg-gray-800"
                   >
                     <Plus size={14} />
@@ -542,13 +538,7 @@ export function DetailView({ note, onClose }: DetailViewProps) {
                   </div>
                   {!isEditing && (
                     <button 
-                      onClick={() => {
-                        setEditTitle(note.title);
-                        setEditDescription(note.description || "");
-                        setEditContent(note.content || "");
-                        setEditTags(note.tags.map(t => t.title));
-                        setIsEditing(true);
-                      }}
+                      onClick={() => setIsTagManagerOpen(true)}
                       className="flex items-center gap-1.5 text-[13px] text-gray-500 dark:text-gray-400 font-medium hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
                     >
                       <Plus size={14} /> Add Tag
@@ -703,6 +693,19 @@ export function DetailView({ note, onClose }: DetailViewProps) {
           onCancel={() => setShowDeleteDialog(false)}
         />
       )}
+
+      <TagManagerDialog
+        open={isTagManagerOpen}
+        onClose={() => setIsTagManagerOpen(false)}
+        noteId={note.id}
+        noteTags={note.tags.map((t) => t.title)}
+        onSaveNoteTags={async (tags) => {
+          await updateContent({
+            id: note.id,
+            data: { tags },
+          });
+        }}
+      />
     </div>
   );
 }

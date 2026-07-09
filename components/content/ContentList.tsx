@@ -1,12 +1,14 @@
 "use client";
 
 import { ContentCard } from "./ContentCard";
+import { ContentGridView } from "./ContentGridView";
+import { ContentCalendarView } from "./ContentCalendarView";
 import { TrashList } from "./TrashList";
-import type { Note, SidebarSection, SourceType } from "@/lib/types";
+import type { Note, SidebarSection, SourceType, ViewMode } from "@/lib/types";
 import { groupNotesByDate } from "@/lib/utils";
 import { FileText } from "lucide-react";
 
-function filterNotes(notes: Note[], section: SidebarSection, search: string, tag: string | null): Note[] {
+function filterNotes(notes: Note[], section: SidebarSection, search: string, activeTags: string[] = []): Note[] {
   let filtered = notes;
 
   const sectionToSource: Partial<Record<SidebarSection, SourceType>> = {
@@ -51,8 +53,10 @@ function filterNotes(notes: Note[], section: SidebarSection, search: string, tag
     );
   }
 
-  if (tag) {
-    filtered = filtered.filter((n) => n.tags.some((t) => t.title === tag));
+  if (activeTags && activeTags.length > 0) {
+    filtered = filtered.filter((n) => 
+      activeTags.some((tag) => n.tags.some((t) => t.title === tag))
+    );
   }
 
   return [...filtered].sort(
@@ -66,8 +70,9 @@ interface ContentListProps {
   selectedNoteId?: string | null;
   onSelectNote: (note: Note) => void;
   activeSection: SidebarSection;
-  activeTag?: string | null;
+  activeTags?: string[];
   searchQuery: string;
+  viewMode?: ViewMode;
 }
 
 // Skeleton card matching the card layout
@@ -95,8 +100,9 @@ export function ContentList({
   selectedNoteId,
   onSelectNote,
   activeSection,
-  activeTag = null,
+  activeTags = [],
   searchQuery,
+  viewMode = "list",
 }: ContentListProps) {
   // Trash has its own data source and UI — delegate entirely
   if (activeSection === "trash") {
@@ -113,7 +119,7 @@ export function ContentList({
     );
   }
 
-  const filtered = filterNotes(notes, activeSection, searchQuery, activeTag);
+  const filtered = filterNotes(notes, activeSection, searchQuery, activeTags);
   const groups = groupNotesByDate(filtered);
 
   if (filtered.length === 0) {
@@ -134,6 +140,26 @@ export function ContentList({
     );
   }
 
+  if (viewMode === "grid") {
+    return (
+      <ContentGridView
+        notes={filtered}
+        selectedNoteId={selectedNoteId}
+        onSelectNote={onSelectNote}
+      />
+    );
+  }
+
+  if (viewMode === "calendar") {
+    return (
+      <ContentCalendarView
+        notes={filtered}
+        selectedNoteId={selectedNoteId}
+        onSelectNote={onSelectNote}
+      />
+    );
+  }
+
   return (
     <div
       className="flex-1 overflow-y-auto"
@@ -144,7 +170,7 @@ export function ContentList({
         <div key={date} role="group" aria-label={date}>
           {/* Month/year group header — matches "May 2026" in screenshot */}
           <div className="px-4 pt-4 pb-2">
-            <h2 className="text-[13px] font-bold text-gray-800">{date}</h2>
+            <h2 className="text-[13px] font-bold text-gray-800 dark:text-gray-200">{date}</h2>
           </div>
 
           {/* Cards — no extra padding, border-l is on the card itself */}
