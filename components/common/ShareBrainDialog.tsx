@@ -30,7 +30,7 @@ export function ShareBrainDialog({ open, onClose }: ShareBrainDialogProps) {
   }, [shareData]);
 
   const shareLink = shareData?.link
-    ? `${BASE_URL}/s/${shareData.link}`
+    ? `${typeof window !== "undefined" ? window.location.origin : BASE_URL}/s/${shareData.link}`
     : null;
 
   const publicNotesCount = notes.filter((n) => n.isPublic).length;

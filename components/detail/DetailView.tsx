@@ -18,6 +18,8 @@ import {
   Maximize2,
   X,
   Trash2,
+  Copy,
+  Check,
 } from "lucide-react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { Tag } from "@/components/common/Tag";
@@ -72,6 +74,7 @@ export function DetailView({ note, onClose }: DetailViewProps) {
   const [editorTarget, setEditorTarget] = useState<"content" | "description" | null>(null);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [isTagManagerOpen, setIsTagManagerOpen] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
 
   const { mutateAsync: updateContent, isPending: isUpdating } = useUpdateContent();
   const { mutateAsync: deleteContent, isPending: isDeleting } = useDeleteContent();
@@ -120,17 +123,23 @@ export function DetailView({ note, onClose }: DetailViewProps) {
   }
 
   async function handleToggleFavorite(newState: boolean) {
+    if (isUpdating) return;
     try {
       await updateContent({
         id: note.id,
-        data: {
-          isFavorite: newState,
-        },
+        data: { isFavorite: newState },
       });
-    } catch (e) {
-      console.error(e);
-      alert("Failed to update favorite status.");
+    } catch (err) {
+      console.error("Failed to toggle favorite:", err);
     }
+  }
+
+  function handleCopyPublicLink() {
+    if (typeof window === "undefined") return;
+    const url = `${window.location.origin}/public/${note.id}`;
+    navigator.clipboard.writeText(url);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
   }
 
   const DETAIL_TABS: { id: DetailTab; label: string }[] = [
@@ -502,9 +511,19 @@ export function DetailView({ note, onClose }: DetailViewProps) {
                           onChange={async () => { await handleToggleVisibility(); }}
                           disabled={isUpdating}
                         />
-                        <span className="text-gray-900 dark:text-gray-100 font-medium">
+                        <span className="text-gray-900 dark:text-gray-100 font-medium w-12">
                           {note.isPublic ? "Public" : "Private"}
                         </span>
+                        {note.isPublic && (
+                          <button
+                            type="button"
+                            onClick={handleCopyPublicLink}
+                            className="ml-2 flex items-center gap-1.5 px-2 py-1 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md text-[11px] font-medium transition-colors"
+                          >
+                            {isCopied ? <Check size={12} className="text-green-600 dark:text-green-400" /> : <Copy size={12} />}
+                            {isCopied ? "Copied" : "Copy Link"}
+                          </button>
+                        )}
                       </dd>
                     </div>
                     <div className="grid grid-cols-[100px_1fr] text-[13px] items-center">

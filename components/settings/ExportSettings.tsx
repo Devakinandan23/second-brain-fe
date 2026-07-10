@@ -1,12 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { Download, FileJson, CheckCircle2, Loader2, AlertCircle } from "lucide-react";
+import { Download, FileJson, CheckCircle2, Loader2, AlertCircle, UploadCloud } from "lucide-react";
+import { useRef } from "react";
+import { useImportContent } from "@/lib/hooks/useContent";
 import apiClient from "@/lib/api";
 
 export function ExportSettings() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const [importStatus, setImportStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [importMsg, setImportMsg] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const importMutation = useImportContent();
 
   async function handleExport() {
     setStatus("loading");
@@ -40,12 +47,52 @@ export function ExportSettings() {
     }
   }
 
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImportStatus("loading");
+    setImportMsg(null);
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const text = event.target?.result as string;
+        const json = JSON.parse(text);
+
+        // Basic validation
+        if (!json.entries || !Array.isArray(json.entries)) {
+          throw new Error("Invalid format: Missing entries array");
+        }
+
+        const res = await importMutation.mutateAsync(json);
+        
+        setImportStatus("success");
+        setImportMsg(`Import complete: ${res.imported} imported, ${res.skipped} skipped, ${res.failed} failed.`);
+      } catch (err: any) {
+        setImportStatus("error");
+        setImportMsg(err.message || "Failed to parse or import data.");
+      }
+      
+      // Reset input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    };
+    reader.onerror = () => {
+      setImportStatus("error");
+      setImportMsg("Failed to read file.");
+    };
+
+    reader.readAsText(file);
+  }
+
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-[15px] font-bold text-gray-900 dark:text-white">Export</h2>
+        <h2 className="text-[15px] font-bold text-gray-900 dark:text-white">Data Export & Import</h2>
         <p className="text-[13px] text-gray-500 dark:text-gray-400 mt-1">
-          Download all your entries as a single JSON file. Trashed notes are not included.
+          Download all your entries as a single JSON file, or import a previously exported file.
         </p>
       </div>
 
@@ -84,6 +131,52 @@ export function ExportSettings() {
       {status === "error" && errorMsg && (
         <div className="flex items-center gap-2 text-[13px] text-red-600 dark:text-red-400 animate-in fade-in duration-200">
           <AlertCircle size={14} /> {errorMsg}
+        </div>
+      )}
+
+      {/* Import card */}
+      <div className="border border-gray-200 dark:border-gray-800 rounded-xl p-5 flex items-start gap-4 bg-gray-50 dark:bg-gray-900/50 mt-4">
+        <div className="w-10 h-10 bg-green-50 dark:bg-green-500/10 rounded-lg flex items-center justify-center shrink-0">
+          <UploadCloud size={18} className="text-green-600 dark:text-green-400" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-[14px] font-semibold text-gray-900 dark:text-white">Import Data (JSON)</p>
+          <p className="text-[12px] text-gray-500 dark:text-gray-400 mt-0.5">
+            Restore entries from a previous export. Duplicates are skipped.
+          </p>
+        </div>
+        <div>
+            <input 
+                type="file" 
+                accept=".json" 
+                ref={fileInputRef} 
+                onChange={handleFileChange} 
+                className="hidden" 
+            />
+            <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={importStatus === "loading"}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-[13px] font-medium transition-all shrink-0
+                bg-green-600 hover:bg-green-700 text-white shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+            {importStatus === "loading" ? (
+                <><Loader2 size={13} className="animate-spin" /> Importing...</>
+            ) : (
+                <><UploadCloud size={13} /> Import</>
+            )}
+            </button>
+        </div>
+      </div>
+
+      {importStatus === "success" && importMsg && (
+        <div className="flex items-center gap-2 text-[13px] text-green-600 dark:text-green-400 animate-in fade-in duration-200">
+          <CheckCircle2 size={14} /> {importMsg}
+        </div>
+      )}
+      {importStatus === "error" && importMsg && (
+        <div className="flex items-center gap-2 text-[13px] text-red-600 dark:text-red-400 animate-in fade-in duration-200">
+          <AlertCircle size={14} /> {importMsg}
         </div>
       )}
 

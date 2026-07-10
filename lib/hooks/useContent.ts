@@ -10,6 +10,10 @@ import {
   createContent,
   updateContent,
   deleteContent,
+  getTrash,
+  restoreFromTrash,
+  permanentlyDelete,
+  importContent,
 } from "../api";
 import type { CreateContentRequest, UpdateContentRequest } from "../types";
 import { TRASH_QUERY_KEY } from "./useTrash";
@@ -33,6 +37,17 @@ export function useCreateContent() {
     mutationFn: (data: CreateContentRequest) => createContent(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: CONTENT_QUERY_KEY });
+    },
+  });
+}
+
+export function useImportContent() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: any) => importContent(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["content"] });
     },
   });
 }

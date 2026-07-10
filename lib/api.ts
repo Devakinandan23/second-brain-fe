@@ -13,6 +13,7 @@ import type {
   ShareLink,
   SharedBrainResponse,
   GetTrashResponse,
+  Note,
 } from "./types";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
@@ -66,10 +67,28 @@ export async function getContent(): Promise<GetContentResponse> {
   return res.data;
 }
 
+export async function getPublicContent(id: string): Promise<Note> {
+  const res = await apiClient.get<Note>(`/content/public/${id}`);
+  return res.data;
+}
+
 export async function createContent(
   data: CreateContentRequest
 ): Promise<CreateContentResponse> {
   const res = await apiClient.post<CreateContentResponse>("/content", data);
+  return res.data;
+}
+
+export interface ImportContentResponse {
+  imported: number;
+  skipped: number;
+  failed: number;
+}
+
+export async function importContent(
+  data: any
+): Promise<ImportContentResponse> {
+  const res = await apiClient.post<ImportContentResponse>("/content/import", data);
   return res.data;
 }
 
