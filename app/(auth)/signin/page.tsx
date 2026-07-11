@@ -20,7 +20,7 @@ export default function SignInPage() {
       const data = await signin({ username, password });
       localStorage.setItem("sb_token", data.token);
       localStorage.setItem("sb_username", data.username);
-      router.push("/dashboard");
+      window.location.href = "/dashboard";
     } catch {
       setError("Invalid username or password.");
     } finally {

@@ -63,7 +63,7 @@ export async function signup(data: SignupRequest): Promise<SignupResponse> {
 
 // Content / Notes
 export async function getContent(): Promise<GetContentResponse> {
-  const res = await apiClient.get<GetContentResponse>("/content");
+  const res = await apiClient.get<GetContentResponse>(`/content?t=${Date.now()}`);
   return res.data;
 }
 
@@ -129,7 +129,7 @@ export async function getSharedBrain(
 
 // Trash
 export async function getTrash(): Promise<GetTrashResponse> {
-  const res = await apiClient.get<GetTrashResponse>("/trash");
+  const res = await apiClient.get<GetTrashResponse>(`/trash?t=${Date.now()}`);
   return res.data;
 }
 

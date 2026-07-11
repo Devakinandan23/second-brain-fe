@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 
 const TOKEN_KEY = "sb_token";
 const USERNAME_KEY = "sb_username";
@@ -26,18 +27,21 @@ export function useAuth() {
       localStorage.setItem(USERNAME_KEY, newUsername);
       setToken(newToken);
       setUsername(newUsername);
-      router.push("/dashboard");
+      window.location.href = "/dashboard";
     },
-    [router]
+    []
   );
+
+  const queryClient = useQueryClient();
 
   const logout = useCallback(() => {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USERNAME_KEY);
     setToken(null);
     setUsername(null);
-    router.push("/signin");
-  }, [router]);
+    queryClient.clear();
+    window.location.href = "/signin";
+  }, [queryClient]);
 
   const isAuthenticated = !!token;
 
