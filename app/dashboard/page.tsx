@@ -8,9 +8,11 @@ import { ContentList } from "@/components/content/ContentList";
 import { QuickAddPanel } from "@/components/quickadd/QuickAddPanel";
 import { DetailView } from "@/components/detail/DetailView";
 import { SettingsDialog } from "@/components/settings/SettingsDialog";
+import { OnboardingOverlay } from "@/components/onboarding/OnboardingOverlay";
 import { useContent } from "@/lib/hooks/useContent";
 import { cn } from "@/lib/utils";
 import type { Note, SidebarSection, ViewMode } from "@/lib/types";
+import { AnimatePresence } from "framer-motion";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -44,6 +46,9 @@ export default function DashboardPage() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isMobileQuickAddOpen, setIsMobileQuickAddOpen] = useState(false);
   const [prefilledTag, setPrefilledTag] = useState<string | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(() =>
+    typeof window !== "undefined" && !localStorage.getItem("sb_onboarded")
+  );
 
   // Resize logic
   const [contentWidth, setContentWidth] = useState(420);
@@ -126,6 +131,18 @@ export default function DashboardPage() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-white dark:bg-gray-950 transition-colors">
+      {/* Onboarding overlay for first-time users */}
+      <AnimatePresence>
+        {showOnboarding && (
+          <OnboardingOverlay
+            onComplete={() => {
+              localStorage.setItem("sb_onboarded", "true");
+              setShowOnboarding(false);
+            }}
+          />
+        )}
+      </AnimatePresence>
+
       <SettingsDialog
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}

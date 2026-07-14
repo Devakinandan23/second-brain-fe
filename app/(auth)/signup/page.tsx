@@ -24,6 +24,7 @@ export default function SignUpPage() {
       const data = await signin({ username, password });
       localStorage.setItem("sb_token", data.token);
       localStorage.setItem("sb_username", data.username);
+      localStorage.removeItem("sb_onboarded");
       window.location.href = "/dashboard";
     } catch (err: unknown) {
       let msg = "Failed to create account.";
