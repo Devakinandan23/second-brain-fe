@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Second Brain Frontend
 
-## Getting Started
+A beautiful, responsive, and highly interactive frontend for the Second Brain personal knowledge management application. Built to deliver a premium user experience with fluid animations, dynamic dark mode, and a highly polished UI.
 
-First, run the development server:
+## ✨ Key Features
+- **Modern UI/UX**: Glassmorphism, smooth Framer Motion animations, and beautiful typography.
+- **Dynamic Themes**: Full support for system, light, and dark modes with seamless color swapping.
+- **Content Management**: Interactive cards for notes, videos, tweets, and documents with auto-extracted metadata.
+- **Responsive Design**: Flawless experience across desktop, tablet, and mobile with a collapsible sidebar and optimized mobile layouts.
+- **User Onboarding**: Animated, multi-step onboarding flow for new users.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🛠️ Tech Stack
+- **Framework**: Next.js (App Router)
+- **Styling**: Tailwind CSS
+- **Components**: Radix UI (accessible, unstyled primitives)
+- **Animations**: Framer Motion
+- **Icons**: Lucide React & Phosphor Icons
+- **Data Fetching**: Axios
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚀 Getting Started
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. **Install Dependencies**
+   ```bash
+   npm install
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+2. **Environment Setup**
+   Copy the example environment file:
+   ```bash
+   cp example.env .env.local
+   ```
+   *Note: By default, the API URL will automatically map to your current hostname.*
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+3. **Run the Development Server**
+   ```bash
+   npm run dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
