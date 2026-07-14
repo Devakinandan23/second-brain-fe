@@ -11,7 +11,7 @@ import { RadioTileGroup } from "./RadioTileGroup";
 export function AppearanceSettings() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const [use24Hour, setUse24Hour] = useState(true);
+  const [use24Hour, setUse24Hour] = useState(false);
   const [density, setDensity] = useState<SidebarDensity>("comfortable");
   const [fontSize, setFontSize] = useState<FontSize>("medium");
   const [reduceMotion, setReduceMotion] = useState(false);
