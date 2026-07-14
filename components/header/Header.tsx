@@ -122,7 +122,7 @@ export function Header({
             onChange={(e) => onSearchChange(e.target.value)}
             className="w-full pl-9 pr-14 py-1.5 text-[13px] bg-gray-100 dark:bg-gray-800 border border-transparent rounded-lg text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:bg-white dark:focus:bg-gray-900 focus:border-gray-200 dark:focus:border-gray-700 focus:ring-2 focus:ring-blue-500/20 transition-all duration-150"
           />
-          <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-0.5 text-gray-400 dark:text-gray-500 hidden sm:flex">
+          <div className="absolute right-2.5 top-1/2 -translate-y-1/2 hidden items-center gap-0.5 text-gray-400 dark:text-gray-500 md:flex">
             <Command size={10} />
             <span className="text-[11px] font-medium">K</span>
           </div>

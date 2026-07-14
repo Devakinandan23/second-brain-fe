@@ -4,6 +4,7 @@ import type { SidebarSection, Note, SourceType } from "@/lib/types";
 import { SiYoutube, SiX } from "@icons-pack/react-simple-icons";
 import { TagManagerDialog } from "@/components/tags";
 import { Logo } from "@/components/common/Logo";
+import { HelpFeedbackDialog } from "@/components/common/HelpFeedbackDialog";
 import * as Dialog from "@radix-ui/react-dialog";
 import {
   Inbox,
@@ -30,6 +31,7 @@ interface SidebarProps {
   notes: Note[];
   activeTags: string[];
   onTagsSelect: (tags: string[]) => void;
+  desktopOpen?: boolean;
   mobileOpen?: boolean;
   onMobileClose?: () => void;
 }
@@ -139,14 +141,17 @@ export function Sidebar({
   notes,
   activeTags,
   onTagsSelect,
+  desktopOpen = true,
   mobileOpen = false,
   onMobileClose,
 }: SidebarProps) {
   const [tagManagerOpen, setTagManagerOpen] = useState(false);
+  const [helpFeedbackOpen, setHelpFeedbackOpen] = useState(false);
+  const [now] = useState(() => Date.now());
 
   const inboxCount = notes.filter((n) => {
     const d = new Date(n.createdAt);
-    return Date.now() - d.getTime() < 86400000 * 2;
+    return now - d.getTime() < 86400000 * 2;
   }).length;
   const favoritesCount = notes.filter((n) => n.isFavorite).length;
 
@@ -341,12 +346,6 @@ export function Sidebar({
           )}
         </div>
 
-        <TagManagerDialog
-          open={tagManagerOpen}
-          onClose={() => setTagManagerOpen(false)}
-          onApplyFilter={(tags) => onTagsSelect(tags)}
-          initialFilterTags={activeTags}
-        />
       </div>
 
       {/* ── Bottom nav ── */}
@@ -363,7 +362,8 @@ export function Sidebar({
           icon={<HelpCircle size={15} />}
           label="Help & Feedback"
           onClick={() => {
-            if (onMobileClose) onMobileClose();
+            setHelpFeedbackOpen(true);
+            onMobileClose?.();
           }}
         />
       </div>
@@ -374,7 +374,10 @@ export function Sidebar({
     <>
       {/* Desktop Sidebar */}
       <aside
-        className="hidden md:flex flex-col h-full bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 transition-colors"
+        className={cn(
+          "hidden md:flex flex-col h-full bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 transition-colors",
+          !desktopOpen && "md:hidden"
+        )}
         style={{ width: "var(--sidebar-width)" }}
         aria-label="Main navigation"
       >
@@ -395,6 +398,21 @@ export function Sidebar({
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>
+
+      <TagManagerDialog
+        open={tagManagerOpen}
+        onClose={() => setTagManagerOpen(false)}
+        onApplyFilter={(tags) => {
+          onTagsSelect(tags);
+          onMobileClose?.();
+        }}
+        initialFilterTags={activeTags}
+      />
+
+      <HelpFeedbackDialog
+        open={helpFeedbackOpen}
+        onClose={() => setHelpFeedbackOpen(false)}
+      />
     </>
   );
 }

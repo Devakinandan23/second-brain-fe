@@ -2,14 +2,14 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Trash2, RotateCcw, Loader2, PackageOpen } from "lucide-react";
+import { Trash2, RotateCcw, Loader2, PackageOpen, Eraser } from "lucide-react";
 import { SiYoutube, SiX, SiNotion, SiGoogledocs } from "@icons-pack/react-simple-icons";
 import { FileText, Link2 } from "lucide-react";
 import { cn, formatTime, getDayLabel } from "@/lib/utils";
 import { groupNotesByDate } from "@/lib/utils";
 import { getTagColor } from "@/components/common/Tag";
 import { ConfirmDeleteDialog } from "@/components/common/ConfirmDeleteDialog";
-import { useTrash, useRestoreFromTrash, usePermanentlyDelete } from "@/lib/hooks/useTrash";
+import { useTrash, useRestoreFromTrash, usePermanentlyDelete, useEmptyTrash } from "@/lib/hooks/useTrash";
 import type { Note, SourceType } from "@/lib/types";
 
 // ── Source icon (mirrors ContentCard) ───────────────────────────────────────
@@ -162,8 +162,10 @@ export function TrashList() {
   const { data: trashedNotes = [], isLoading } = useTrash();
   const { mutate: restore, isPending: isRestoring, variables: restoringId } = useRestoreFromTrash();
   const { mutate: deleteForever, isPending: isDeleting } = usePermanentlyDelete();
+  const { mutate: emptyTrash, isPending: isEmptying } = useEmptyTrash();
 
   const [confirmNote, setConfirmNote] = useState<Note | null>(null);
+  const [isEmptyTrashDialogOpen, setIsEmptyTrashDialogOpen] = useState(false);
 
   const handleDelete = (note: Note) => setConfirmNote(note);
 
@@ -171,6 +173,12 @@ export function TrashList() {
     if (!confirmNote) return;
     deleteForever(confirmNote.id, {
       onSuccess: () => setConfirmNote(null),
+    });
+  };
+
+  const handleConfirmEmptyTrash = () => {
+    emptyTrash(trashedNotes.map((note) => note.id), {
+      onSuccess: () => setIsEmptyTrashDialogOpen(false),
     });
   };
 
@@ -203,11 +211,18 @@ export function TrashList() {
   return (
     <>
       {/* Header banner */}
-      <div className="px-6 py-3 border-b border-gray-100 dark:border-gray-800 bg-red-50/60 dark:bg-red-950/20">
+      <div className="flex items-center justify-between gap-3 px-6 py-3 border-b border-gray-100 dark:border-gray-800 bg-red-50/60 dark:bg-red-950/20">
         <p className="text-[12px] text-red-600 dark:text-red-400 font-medium flex items-center gap-1.5">
           <Trash2 size={12} />
           Items in trash are not shown in your brain. Restore or delete them forever.
         </p>
+        <button
+          type="button"
+          onClick={() => setIsEmptyTrashDialogOpen(true)}
+          className="shrink-0 flex items-center gap-1.5 rounded-lg border border-red-200 bg-white/70 px-2.5 py-1.5 text-[12px] font-semibold text-red-600 transition-colors hover:bg-red-100 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-400 dark:hover:bg-red-950/60"
+        >
+          <Eraser size={13} /> Empty trash
+        </button>
       </div>
 
       <div className="flex-1 overflow-y-auto" role="list" aria-label="Trash">
@@ -245,6 +260,21 @@ export function TrashList() {
           isConfirming={isDeleting}
           onConfirm={handleConfirmDelete}
           onCancel={() => setConfirmNote(null)}
+        />
+      )}
+
+      {isEmptyTrashDialogOpen && (
+        <ConfirmDeleteDialog
+          title="Empty Trash?"
+          description={
+            <>
+              All {trashedNotes.length} item{trashedNotes.length === 1 ? "" : "s"} in Trash will be permanently deleted and cannot be recovered.
+            </>
+          }
+          confirmLabel="Empty trash"
+          isConfirming={isEmptying}
+          onConfirm={handleConfirmEmptyTrash}
+          onCancel={() => setIsEmptyTrashDialogOpen(false)}
         />
       )}
     </>

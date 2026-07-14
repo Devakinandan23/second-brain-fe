@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { ArrowRight, Eye, EyeOff, KeyRound, Loader2, User } from "lucide-react";
 import { signup, signin } from "@/lib/api";
 
 export default function SignUpPage() {
-  const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -33,55 +33,83 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm p-8 transition-colors">
-      <div className="mb-6">
-        <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
+    <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm px-7 py-8 transition-colors sm:px-9">
+      <div className="mb-8 text-center">
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blue-600 dark:text-blue-500">
+          Sign up
+        </p>
+        <h1 className="mt-3 text-2xl font-semibold text-gray-900 dark:text-white">
           Create your account
         </h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+        <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
           Start building your Second Brain
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div>
           <label
             htmlFor="username"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
+            className="block text-xs font-semibold uppercase tracking-[0.14em] text-gray-500 dark:text-gray-400 mb-2"
           >
             Username
           </label>
-          <input
-            id="username"
-            type="text"
-            autoComplete="username"
-            required
-            minLength={3}
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            className="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-150"
-            placeholder="your-username"
-          />
+          <div className="auth-field group flex min-h-12 items-center rounded-lg border border-gray-200 bg-white text-gray-900 transition-colors duration-150 focus-within:border-gray-300 focus-within:ring-0 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus-within:border-gray-600">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center border-r border-gray-200 text-gray-400 transition-colors group-focus-within:text-blue-600 dark:border-gray-700 dark:text-gray-500 dark:group-focus-within:text-blue-500">
+              <User size={17} strokeWidth={2} aria-hidden="true" />
+            </span>
+            <input
+              id="username"
+              type="text"
+              autoComplete="username"
+              required
+              minLength={3}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="auth-field-input h-12 min-w-0 flex-1 bg-transparent px-4 text-sm text-gray-900 placeholder-gray-400 outline-none dark:text-white dark:placeholder-gray-500"
+              placeholder="your-username"
+            />
+          </div>
         </div>
 
         <div>
           <label
             htmlFor="password"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
+            className="block text-xs font-semibold uppercase tracking-[0.14em] text-gray-500 dark:text-gray-400 mb-2"
           >
             Password
           </label>
-          <input
-            id="password"
-            type="password"
-            autoComplete="new-password"
-            required
-            minLength={6}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-150"
-            placeholder="••••••••"
-          />
+          <div className={`auth-field group relative flex min-h-12 items-center overflow-hidden rounded-lg border border-gray-200 transition-colors duration-300 focus-within:border-gray-300 focus-within:ring-0 dark:border-gray-700 dark:focus-within:border-gray-600 ${showPassword ? "bg-white text-gray-900 dark:bg-white dark:text-gray-900" : "bg-gray-900 text-white dark:bg-black"}`}>
+            <span className={`pointer-events-none absolute right-2 top-1/2 z-0 h-10 w-10 -translate-y-1/2 rounded-full bg-white transition-transform duration-500 ease-out ${showPassword ? "scale-[20]" : "scale-100"}`} aria-hidden="true" />
+            <span className={`relative z-10 flex h-12 w-12 shrink-0 items-center justify-center border-r transition-colors duration-300 ${showPassword ? "border-gray-200 text-gray-400 dark:border-gray-200 dark:text-gray-400" : "border-gray-700 text-gray-300 dark:border-gray-800 dark:text-gray-400"}`}>
+              <KeyRound size={17} strokeWidth={2} aria-hidden="true" />
+            </span>
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="new-password"
+              required
+              minLength={6}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={`auth-field-input relative z-10 h-12 min-w-0 flex-1 bg-transparent px-4 text-sm outline-none transition-colors duration-300 ${showPassword ? "text-gray-900 placeholder-gray-400 dark:text-gray-900 dark:placeholder-gray-400" : "text-white placeholder-gray-500 dark:text-gray-100 dark:placeholder-gray-600"}`}
+              placeholder="••••••••"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((value) => !value)}
+              className={`auth-field-toggle relative z-10 mr-2 flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors duration-300 focus:outline-none focus-visible:ring-0 ${showPassword ? "text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-700" : "text-blue-600 hover:text-blue-700 dark:text-blue-500 dark:hover:text-blue-400"}`}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              aria-pressed={showPassword}
+              title={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? (
+                <Eye size={18} strokeWidth={2} aria-hidden="true" />
+              ) : (
+                <EyeOff size={18} strokeWidth={2} aria-hidden="true" />
+              )}
+            </button>
+          </div>
         </div>
 
         {error && (
@@ -93,13 +121,23 @@ export default function SignUpPage() {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2.5 rounded-lg transition-colors duration-150 disabled:opacity-60 disabled:cursor-not-allowed mt-2"
+          className="mt-1 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white transition-colors duration-150 hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {isLoading ? "Creating account…" : "Create account"}
+          {isLoading ? (
+            <>
+              <Loader2 size={16} className="animate-spin" aria-hidden="true" />
+              Creating account...
+            </>
+          ) : (
+            <>
+              Create account
+              <ArrowRight size={16} aria-hidden="true" />
+            </>
+          )}
         </button>
       </form>
 
-      <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
+      <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-7">
         Already have an account?{" "}
         <Link
           href="/signin"

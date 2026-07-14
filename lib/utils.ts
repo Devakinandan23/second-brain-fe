@@ -6,6 +6,78 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+function copyWithExecCommand(text: string): boolean {
+  if (typeof document === "undefined") return false;
+
+  const input = document.createElement("input");
+  input.type = "text";
+  input.value = text;
+  input.setAttribute("readonly", "true");
+  input.style.position = "fixed";
+  input.style.top = "0";
+  input.style.left = "0";
+  input.style.width = "1px";
+  input.style.height = "1px";
+  input.style.padding = "0";
+  input.style.border = "0";
+  input.style.opacity = "0.01";
+  document.body.appendChild(input);
+  input.focus();
+  input.select();
+  input.setSelectionRange(0, text.length);
+
+  try {
+    return document.execCommand("copy");
+  } finally {
+    document.body.removeChild(input);
+  }
+}
+
+export async function copyTextToClipboard(text: string): Promise<boolean> {
+  const isSecureContext =
+    typeof window !== "undefined" &&
+    (window.isSecureContext || window.location.protocol === "https:");
+
+  // Keep HTTP/LAN copying synchronous so the original button gesture is preserved.
+  if (!isSecureContext) return copyWithExecCommand(text);
+
+  try {
+    if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {
+    // Fall through to the legacy copy path for restricted browsers.
+  }
+
+  return copyWithExecCommand(text);
+}
+
+const HTML_ENTITY_MAP: Record<string, string> = {
+  "&quot;": '"',
+  "&#34;": '"',
+  "&#39;": "'",
+  "&#x27;": "'",
+  "&apos;": "'",
+  "&amp;": "&",
+  "&lt;": "<",
+  "&gt;": ">",
+  "&nbsp;": " ",
+};
+
+export function normalizeNoteTitle(title: string): string {
+  const normalizedTitle = title
+    .replace(/&(?:quot|apos|amp|lt|gt|nbsp);|&#(?:34|39);|&#x27;/gi, (entity) => {
+      return HTML_ENTITY_MAP[entity.toLowerCase()] ?? entity;
+    })
+    .replace(/^\*+|\*+$/g, "")
+    .trim();
+
+  return normalizedTitle
+    .replace(/^["“”]([\s\S]*)["“”]$/, "$1")
+    .trim();
+}
+
 export function formatDate(dateString: string): string {
   const date = new Date(dateString);
   const now = new Date();

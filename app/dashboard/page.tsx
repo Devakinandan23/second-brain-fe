@@ -133,21 +133,20 @@ export default function DashboardPage() {
       />
 
       {/* Sidebar handles both desktop and mobile modes internally */}
-      {isSidebarOpen && (
-        <Sidebar
-          activeSection={activeSection}
-          onSectionChange={handleSectionChange}
-          onOpenSettings={() => setSettingsOpen(true)}
-          notes={notes}
-          activeTags={activeTags}
-          onTagsSelect={(tags) => {
-            setActiveTags(tags);
-            setIsMobileQuickAddOpen(false);
-          }}
-          mobileOpen={isMobileSidebarOpen}
-          onMobileClose={() => setIsMobileSidebarOpen(false)}
-        />
-      )}
+      <Sidebar
+        activeSection={activeSection}
+        onSectionChange={handleSectionChange}
+        onOpenSettings={() => setSettingsOpen(true)}
+        notes={notes}
+        activeTags={activeTags}
+        onTagsSelect={(tags) => {
+          setActiveTags(tags);
+          setIsMobileQuickAddOpen(false);
+        }}
+        desktopOpen={isSidebarOpen}
+        mobileOpen={isMobileSidebarOpen}
+        onMobileClose={() => setIsMobileSidebarOpen(false)}
+      />
 
       {/* Center + Right: main area */}
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">

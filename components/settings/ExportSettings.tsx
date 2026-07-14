@@ -5,6 +5,7 @@ import { Download, FileJson, CheckCircle2, Loader2, AlertCircle, UploadCloud } f
 import { useRef } from "react";
 import { useImportContent } from "@/lib/hooks/useContent";
 import apiClient from "@/lib/api";
+import { normalizeNoteTitle } from "@/lib/utils";
 
 export function ExportSettings() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
@@ -65,13 +66,20 @@ export function ExportSettings() {
           throw new Error("Invalid format: Missing entries array");
         }
 
-        const res = await importMutation.mutateAsync(json);
+        const entries = (json.entries as Array<Record<string, unknown>>).map((entry) => ({
+          ...entry,
+          ...(typeof entry.title === "string"
+            ? { title: normalizeNoteTitle(entry.title) }
+            : {}),
+        }));
+        const res = await importMutation.mutateAsync({ ...json, entries });
         
         setImportStatus("success");
         setImportMsg(`Import complete: ${res.imported} imported, ${res.skipped} skipped, ${res.failed} failed.`);
-      } catch (err: any) {
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : "Failed to parse or import data.";
         setImportStatus("error");
-        setImportMsg(err.message || "Failed to parse or import data.");
+        setImportMsg(message);
       }
       
       // Reset input

@@ -8,16 +8,19 @@ import {
   Palette,
   Settings,
   X,
+  Info,
 } from "lucide-react";
 import { AccountSettings } from "./AccountSettings";
 import { AppearanceSettings } from "./AppearanceSettings";
 import { ExportSettings } from "./ExportSettings";
+import { AboutSettings } from "./AboutSettings";
 import { cn } from "@/lib/utils";
 
 type SettingsSection =
   | "account"
   | "appearance"
   | "export"
+  | "about"
   | "advanced";
 
 interface SettingsNavItem {
@@ -30,6 +33,7 @@ const NAV_ITEMS: SettingsNavItem[] = [
   { id: "account", label: "Account", icon: <User size={15} /> },
   { id: "appearance", label: "Appearance", icon: <Palette size={15} /> },
   { id: "export", label: "Export / Import", icon: <Download size={15} /> },
+  { id: "about", label: "About", icon: <Info size={15} /> },
   { id: "advanced", label: "Advanced", icon: <Settings size={15} /> },
 ];
 
@@ -55,7 +59,7 @@ export function SettingsDialog({ open, onClose, username }: SettingsDialogProps)
             "w-[640px] max-w-[95vw] h-[540px] max-h-[90vh]",
             "bg-white dark:bg-gray-950",
             "rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800",
-            "flex flex-col md:flex-row overflow-hidden",
+            "flex min-h-0 flex-col md:flex-row overflow-hidden",
             "animate-in fade-in-0 zoom-in-95"
           )}
           aria-label="Settings"
@@ -108,7 +112,7 @@ export function SettingsDialog({ open, onClose, username }: SettingsDialogProps)
           </nav>
 
           {/* Right content */}
-          <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
             {/* Close button (desktop only) */}
             <div className="hidden md:flex items-center justify-end px-5 pt-4 pb-0 shrink-0">
               <Dialog.Close asChild>
@@ -123,12 +127,13 @@ export function SettingsDialog({ open, onClose, username }: SettingsDialogProps)
             </div>
 
             {/* Section content */}
-            <div className="flex-1 overflow-y-auto px-6 py-4">
+            <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
               {activeSection === "account" && (
                 <AccountSettings username={username} />
               )}
               {activeSection === "appearance" && <AppearanceSettings />}
               {activeSection === "export" && <ExportSettings />}
+              {activeSection === "about" && <AboutSettings />}
               {activeSection === "advanced" && (
                 <div className="flex flex-col items-center justify-center h-48 text-center">
                   <div className="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center justify-center mb-3">

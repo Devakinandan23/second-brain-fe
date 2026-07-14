@@ -1,6 +1,16 @@
 import type { NextConfig } from "next";
+import fs from "fs";
+import path from "path";
+
+const pkgPath = path.join(process.cwd(), "package.json");
+const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
+const buildDate = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 
 const nextConfig: NextConfig = {
+  env: {
+    NEXT_PUBLIC_APP_VERSION: `v${pkg.version}`,
+    NEXT_PUBLIC_BUILD_DATE: buildDate,
+  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "i.ytimg.com" },

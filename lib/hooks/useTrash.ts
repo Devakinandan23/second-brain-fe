@@ -37,3 +37,15 @@ export function usePermanentlyDelete() {
     },
   });
 }
+
+export function useEmptyTrash() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (ids: string[]) => {
+      await Promise.all(ids.map((id) => permanentlyDelete(id)));
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: TRASH_QUERY_KEY });
+    },
+  });
+}

@@ -4,6 +4,8 @@ import { Brain, ExternalLink, FileText, Image as ImageIcon } from "lucide-react"
 import Link from "next/link";
 import { Metadata } from "next";
 
+export const dynamic = "force-dynamic";
+
 interface PageProps {
   params: Promise<{ shareLink: string }>;
 }

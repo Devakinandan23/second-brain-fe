@@ -8,15 +8,15 @@ import type {
   CreateContentRequest,
   CreateContentResponse,
   UpdateContentRequest,
-  DeleteContentRequest,
   ShareLinkRequest,
   ShareLink,
   SharedBrainResponse,
   GetTrashResponse,
   Note,
 } from "./types";
+import { normalizeNoteTitle } from "./utils";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://192.168.1.2:3001";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://192.168.1.6:3001";
 
 const apiClient = axios.create({
   baseURL: `${BASE_URL}/api/v1`,
@@ -64,12 +64,18 @@ export async function signup(data: SignupRequest): Promise<SignupResponse> {
 // Content / Notes
 export async function getContent(): Promise<GetContentResponse> {
   const res = await apiClient.get<GetContentResponse>(`/content?t=${Date.now()}`);
-  return res.data;
+  return {
+    ...res.data,
+    content: res.data.content.map((note) => ({
+      ...note,
+      title: normalizeNoteTitle(note.title),
+    })),
+  };
 }
 
 export async function getPublicContent(id: string): Promise<Note> {
   const res = await apiClient.get<Note>(`/content/public/${id}`);
-  return res.data;
+  return { ...res.data, title: normalizeNoteTitle(res.data.title) };
 }
 
 export async function createContent(
@@ -86,7 +92,7 @@ export interface ImportContentResponse {
 }
 
 export async function importContent(
-  data: any
+  data: Record<string, unknown>
 ): Promise<ImportContentResponse> {
   const res = await apiClient.post<ImportContentResponse>("/content/import", data);
   return res.data;
@@ -124,13 +130,25 @@ export async function getSharedBrain(
   const res = await apiClient.get<SharedBrainResponse>(
     `/brain/${shareLink}`
   );
-  return res.data;
+  return {
+    ...res.data,
+    content: res.data.content.map((note) => ({
+      ...note,
+      title: normalizeNoteTitle(note.title),
+    })),
+  };
 }
 
 // Trash
 export async function getTrash(): Promise<GetTrashResponse> {
   const res = await apiClient.get<GetTrashResponse>(`/trash?t=${Date.now()}`);
-  return res.data;
+  return {
+    ...res.data,
+    content: res.data.content.map((note) => ({
+      ...note,
+      title: normalizeNoteTitle(note.title),
+    })),
+  };
 }
 
 export async function restoreFromTrash(

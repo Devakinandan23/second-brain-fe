@@ -101,6 +101,12 @@ body {
   border-radius: var(--radius-sm);
 }
 
+/* Auth fields use their own neutral focus state; avoid a second outline over the field shell. */
+.auth-field-input:focus-visible,
+.auth-field-toggle:focus-visible {
+  outline: none;
+}
+
 /* ---- Reduced motion ---- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

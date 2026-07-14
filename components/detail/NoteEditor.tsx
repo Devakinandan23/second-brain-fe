@@ -2,8 +2,6 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { X, Check, Loader2 } from "lucide-react";
-import type { Note } from "@/lib/types";
-import { cn } from "@/lib/utils";
 import { AnimatedSaveButton } from "./AnimatedSaveButton";
 
 interface NoteEditorProps {
@@ -19,6 +17,12 @@ export function NoteEditor({ initialTitle, initialContent, editorType, onSave, o
   const [content, setContent] = useState(initialContent);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const lastSavedData = useRef({ title: initialTitle, content: initialContent });
+  const titleInputRef = useRef<HTMLTextAreaElement>(null);
+
+  const resizeTitle = useCallback((element: HTMLTextAreaElement) => {
+    element.style.height = "auto";
+    element.style.height = `${element.scrollHeight}px`;
+  }, []);
 
   const handleSave = useCallback(async () => {
     if (title === lastSavedData.current.title && content === lastSavedData.current.content) {
@@ -60,6 +64,10 @@ export function NoteEditor({ initialTitle, initialContent, editorType, onSave, o
     return () => clearTimeout(timer);
   }, [title, content, handleSave]);
 
+  useEffect(() => {
+    if (titleInputRef.current) resizeTitle(titleInputRef.current);
+  }, [title, resizeTitle]);
+
   return (
     <div className="fixed inset-0 z-50 bg-white/80 dark:bg-gray-950/80 backdrop-blur-sm flex justify-center items-center p-4 sm:p-8 animate-in fade-in duration-200">
       <div className="w-full max-w-4xl h-full max-h-[90vh] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden ring-1 ring-black/5 dark:ring-white/5">
@@ -83,7 +91,7 @@ export function NoteEditor({ initialTitle, initialContent, editorType, onSave, o
                   Error saving
                 </span>
               )}
-              {title === lastSavedData.current.title && content === lastSavedData.current.content && saveStatus !== "saving" && saveStatus !== "error" && (
+              {saveStatus === "saved" && (
                 <span className="text-green-500 flex items-center gap-1">
                   <Check size={12} /> Saved
                 </span>
@@ -92,13 +100,10 @@ export function NoteEditor({ initialTitle, initialContent, editorType, onSave, o
           </div>
 
           <div className="flex items-center gap-3">
-            <AnimatedSaveButton
-              onClick={handleSave}
-              isSaving={saveStatus === "saving"}
-            />
             <button
+              type="button"
               onClick={onClose}
-              className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              className="p-1.5 text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-400 rounded-lg transition-colors"
               aria-label="Close Editor"
             >
               <X size={18} />
@@ -108,12 +113,16 @@ export function NoteEditor({ initialTitle, initialContent, editorType, onSave, o
 
         {/* Editor Body */}
         <div className="flex-1 flex flex-col overflow-hidden bg-white dark:bg-gray-950 p-8 sm:p-12">
-          <input
-            type="text"
+          <textarea
+            ref={titleInputRef}
+            rows={1}
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) => {
+              setTitle(e.target.value);
+              resizeTitle(e.currentTarget);
+            }}
             placeholder="Title"
-            className="text-3xl font-bold text-gray-900 dark:text-gray-100 bg-transparent outline-none focus:outline-none focus:ring-0 focus:border-transparent border-transparent placeholder-gray-300 dark:placeholder-gray-700 mb-6 shadow-none focus:shadow-none !border-none !ring-0 !outline-none"
+            className="mb-6 min-h-10 max-h-36 w-full resize-none overflow-y-auto whitespace-pre-wrap break-words border-0 bg-transparent text-3xl font-bold text-gray-900 outline-none placeholder-gray-300 focus:outline-none focus:ring-0 dark:text-gray-100 dark:placeholder-gray-700"
           />
           <textarea
             value={content}
@@ -124,11 +133,17 @@ export function NoteEditor({ initialTitle, initialContent, editorType, onSave, o
         </div>
         
         {/* Footer Shortcut hint */}
-        <div className="px-6 py-3 border-t border-gray-100 dark:border-gray-800 shrink-0 bg-gray-50 dark:bg-gray-900/80 flex items-center justify-between text-xs text-gray-500">
+        <div className="flex shrink-0 flex-col gap-3 border-t border-gray-100 bg-gray-50 px-6 py-3 text-xs text-gray-500 dark:border-gray-800 dark:bg-gray-900/80 sm:flex-row sm:items-center sm:justify-between">
           <span>Markdown formatting is supported</span>
-          <span className="flex items-center gap-1">
-            Press <kbd className="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-800 rounded text-gray-700 dark:text-gray-300 font-sans">Cmd</kbd> + <kbd className="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-800 rounded text-gray-700 dark:text-gray-300 font-sans">S</kbd> to save
-          </span>
+          <div className="flex items-center justify-between gap-3 sm:justify-end">
+            <span className="hidden items-center gap-1 md:flex">
+              Press <kbd className="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-800 rounded text-gray-700 dark:text-gray-300 font-sans">Cmd</kbd> + <kbd className="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-800 rounded text-gray-700 dark:text-gray-300 font-sans">S</kbd> to save
+            </span>
+            <AnimatedSaveButton
+              onClick={handleSave}
+              isSaving={saveStatus === "saving"}
+            />
+          </div>
         </div>
       </div>
     </div>

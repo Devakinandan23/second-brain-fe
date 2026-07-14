@@ -10,6 +10,11 @@
   user-select: none;
 }
 
+.radioInputs label {
+  position: relative;
+  display: block;
+}
+
 .radioInput {
   clip: rect(0 0 0 0);
   -webkit-clip-path: inset(100%);

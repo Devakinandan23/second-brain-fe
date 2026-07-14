@@ -2,12 +2,12 @@
 
 import { useState, useMemo, useCallback } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { X, Tag as TagIcon, Loader2 } from "lucide-react";
+import { X, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAllTags } from "./useAllTags";
+import { createCustomTag, useAllTags } from "./useAllTags";
 import { TagSearch } from "./TagSearch";
 import { TagList } from "./TagList";
-import type { TagManagerDialogProps, TagManagerTab } from "./types";
+import type { TagManagerDialogProps } from "./types";
 
 /* ────────────────────────────────────────────────────────────────── */
 /*  TagManagerDialog                                                  */
@@ -61,6 +61,7 @@ export function TagManagerDialog({
   const handleCreate = useCallback(() => {
     const title = query.trim();
     if (!title) return;
+    createCustomTag(title);
     setSelectedTags((prev) => new Set([...prev, title]));
     setQuery("");
   }, [query]);

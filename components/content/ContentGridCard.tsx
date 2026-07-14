@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { cn, formatDate, getSourceLabel } from "@/lib/utils";
 import type { Note } from "@/lib/types";
 import { SiYoutube, SiX, SiNotion, SiGoogledocs } from "@icons-pack/react-simple-icons";
@@ -42,6 +43,8 @@ function getFallbackGradient(sourceType: string) {
 }
 
 export function ContentGridCard({ note, isSelected, onClick }: ContentGridCardProps) {
+  const [imgError, setImgError] = useState(false);
+
   // Take up to 2 tags to prevent wrapping issues on small grids
   const displayTags = note.tags.slice(0, 2);
 
@@ -65,13 +68,14 @@ export function ContentGridCard({ note, isSelected, onClick }: ContentGridCardPr
         "bg-gradient-to-br",
         getFallbackGradient(note.sourceType)
       )}>
-        {note.thumbnail ? (
+        {note.thumbnail && !imgError ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={note.thumbnail}
             alt={note.title}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             loading="lazy"
+            onError={() => setImgError(true)}
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center opacity-40">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import {
   ArrowLeft,
@@ -31,7 +31,7 @@ import { ToggleSwitch } from "@/components/common/ToggleSwitch";
 import { ConfirmDeleteDialog } from "@/components/common/ConfirmDeleteDialog";
 import { TagManagerDialog } from "@/components/tags";
 import { NoteEditor } from "./NoteEditor";
-import { cn, formatDate, getSourceLabel, extractDomain } from "@/lib/utils";
+import { cn, copyTextToClipboard, formatDate, getSourceLabel, extractDomain } from "@/lib/utils";
 import { SiYoutube, SiX, SiNotion, SiGoogledocs } from "@icons-pack/react-simple-icons";
 import type { Note, SourceType } from "@/lib/types";
 import { useContent, useDeleteContent, useUpdateContent } from "@/lib/hooks/useContent";
@@ -78,11 +78,8 @@ export function DetailView({ note, onClose }: DetailViewProps) {
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [isTagManagerOpen, setIsTagManagerOpen] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
-  const [imgError, setImgError] = useState(false);
-
-  useEffect(() => {
-    setImgError(false);
-  }, [note.id]);
+  const [imgErrorForNoteId, setImgErrorForNoteId] = useState<string | null>(null);
+  const imgError = imgErrorForNoteId === note.id;
 
   const { mutateAsync: updateContent, isPending: isUpdating } = useUpdateContent();
   const { mutateAsync: deleteContent, isPending: isDeleting } = useDeleteContent();
@@ -142,12 +139,13 @@ export function DetailView({ note, onClose }: DetailViewProps) {
     }
   }
 
-  function handleCopyPublicLink() {
-    if (typeof window === "undefined") return;
-    const url = `${window.location.origin}/public/${note.id}`;
-    navigator.clipboard.writeText(url);
-    setIsCopied(true);
-    setTimeout(() => setIsCopied(false), 2000);
+  async function handleCopyOriginalLink() {
+    if (!note.link) return;
+    const copiedSuccessfully = await copyTextToClipboard(note.link);
+    if (copiedSuccessfully) {
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    }
   }
 
   const DETAIL_TABS: { id: DetailTab; label: string }[] = [
@@ -355,7 +353,7 @@ export function DetailView({ note, onClose }: DetailViewProps) {
                 width={280}
                 height={158}
                 className="w-full object-cover aspect-video"
-                onError={() => setImgError(true)}
+                onError={() => setImgErrorForNoteId(note.id)}
               />
             ) : (
               <div className="flex items-center justify-center opacity-60">
@@ -538,16 +536,6 @@ export function DetailView({ note, onClose }: DetailViewProps) {
                         <span className="text-gray-900 dark:text-gray-100 font-medium w-12">
                           {note.isPublic ? "Public" : "Private"}
                         </span>
-                        {note.isPublic && (
-                          <button
-                            type="button"
-                            onClick={handleCopyPublicLink}
-                            className="ml-2 flex items-center gap-1.5 px-2 py-1 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md text-[11px] font-medium transition-colors"
-                          >
-                            {isCopied ? <Check size={12} className="text-green-600 dark:text-green-400" /> : <Copy size={12} />}
-                            {isCopied ? "Copied" : "Copy Link"}
-                          </button>
-                        )}
                       </dd>
                     </div>
                     <div className="grid grid-cols-[100px_1fr] text-[13px] items-center">
@@ -593,10 +581,24 @@ export function DetailView({ note, onClose }: DetailViewProps) {
                 {note.link && (
                   <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 shadow-sm">
                     <h3 className="text-[15px] font-bold text-gray-900 dark:text-white mb-4">Links</h3>
-                    <div className="mb-1">
-                      <span className="text-[13px] text-blue-600 dark:text-blue-400 font-medium">
+                    <div className="mb-1 flex items-center justify-between gap-3">
+                      <span className="text-[13px] font-medium text-blue-600 dark:text-blue-400">
                         Original Link
                       </span>
+                      <button
+                        type="button"
+                        onClick={handleCopyOriginalLink}
+                        className="inline-flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
+                        aria-label="Copy original link"
+                        title="Copy original link"
+                      >
+                        {isCopied ? (
+                          <Check size={13} className="text-green-600 dark:text-green-400" />
+                        ) : (
+                          <Copy size={13} />
+                        )}
+                        {isCopied ? "Copied" : "Copy"}
+                      </button>
                     </div>
                     <a
                       href={note.link}
@@ -643,7 +645,7 @@ export function DetailView({ note, onClose }: DetailViewProps) {
                 </div>
               ) : note.content ? (
                 <div className="w-full max-w-3xl mx-auto py-6">
-                  <div className="flex justify-end mb-4">
+                  <div className="mb-4 flex justify-end gap-2">
                     <button
                       type="button"
                       onClick={() => {
@@ -656,6 +658,16 @@ export function DetailView({ note, onClose }: DetailViewProps) {
                       className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-sm dark:bg-gray-900 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
                     >
                       <Edit3 size={14} /> Edit Notes
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditorTarget("content");
+                        setIsEditorOpen(true);
+                      }}
+                      className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
+                    >
+                      <Maximize2 size={14} /> Editor mode
                     </button>
                   </div>
                   <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 shadow-sm">
@@ -673,15 +685,12 @@ export function DetailView({ note, onClose }: DetailViewProps) {
                   <button
                     type="button"
                     onClick={() => {
-                      setEditTitle(note.title);
-                      setEditDescription(note.description || "");
-                      setEditContent(note.content || "");
-                      setEditTags(note.tags.map((t) => t.title));
-                      setIsEditing(true);
+                      setEditorTarget("content");
+                      setIsEditorOpen(true);
                     }}
                     className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 text-sm font-medium"
                   >
-                    Add Notes
+                    Open editor
                   </button>
                 </div>
               )}

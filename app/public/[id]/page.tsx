@@ -8,6 +8,8 @@ import { Globe, FileText, ExternalLink, Brain } from "lucide-react";
 import Link from "next/link";
 import { Metadata } from "next";
 
+export const dynamic = "force-dynamic";
+
 interface PageProps {
   params: Promise<{ id: string }>;
 }
