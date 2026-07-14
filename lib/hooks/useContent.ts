@@ -45,7 +45,7 @@ export function useImportContent() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: any) => importContent(data),
+    mutationFn: (data: Record<string, unknown>) => importContent(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["content"] });
     },
