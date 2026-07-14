@@ -1,6 +1,21 @@
 import type { NextConfig } from "next";
 import fs from "fs";
 import path from "path";
+import os from "os";
+
+// Dynamically get the machine's local IP address so you don't have to hardcode it
+function getLocalIPs() {
+  const interfaces = os.networkInterfaces();
+  const ips: string[] = [];
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name] || []) {
+      if (iface.family === "IPv4" && !iface.internal) {
+        ips.push(iface.address);
+      }
+    }
+  }
+  return ips;
+}
 
 const pkgPath = path.join(process.cwd(), "package.json");
 const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
@@ -29,7 +44,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "**" },
     ],
   },
-  allowedDevOrigins: ["192.168.1.6"],
+  allowedDevOrigins: getLocalIPs(),
 };
 
 export default nextConfig;

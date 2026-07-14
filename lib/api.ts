@@ -16,7 +16,16 @@ import type {
 } from "./types";
 import { normalizeNoteTitle } from "./utils";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://192.168.1.6:3001";
+let BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+if (!BASE_URL) {
+  if (typeof window !== "undefined") {
+    // Dynamically use the same IP you accessed the frontend with
+    BASE_URL = `${window.location.protocol}//${window.location.hostname}:3001`;
+  } else {
+    // Fallback for server-side rendering
+    BASE_URL = "http://localhost:3001";
+  }
+}
 
 const apiClient = axios.create({
   baseURL: `${BASE_URL}/api/v1`,
