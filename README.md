@@ -5,9 +5,11 @@ A beautiful, responsive, and highly interactive frontend for the Second Brain pe
 ## ✨ Key Features
 - **Modern UI/UX**: Glassmorphism, smooth Framer Motion animations, and beautiful typography.
 - **Dynamic Themes**: Full support for system, light, and dark modes with seamless color swapping.
-- **Content Management**: Interactive cards for notes, videos, tweets, and documents with auto-extracted metadata.
+- **Content Management**: Interactive cards for notes, videos, tweets, and documents with auto-extracted metadata (thumbnails, descriptions, sources).
+- **Advanced Filtering**: Instantly search your knowledge base and filter by tags to find exactly what you need.
+- **Settings & Customization**: Configure your UI density, typography scale, 24-hour time formats, and reduce-motion preferences.
 - **Responsive Design**: Flawless experience across desktop, tablet, and mobile with a collapsible sidebar and optimized mobile layouts.
-- **User Onboarding**: Animated, multi-step onboarding flow for new users.
+- **User Onboarding**: Animated, multi-step onboarding flow that guides new users to install the web app and bookmark the page.
 
 ## 🛠️ Tech Stack
 - **Framework**: Next.js (App Router)
