@@ -56,6 +56,7 @@ export interface SigninResponse {
 export interface SignupRequest {
   username: string;
   password: string;
+  passwordHint?: string;
 }
 
 export interface SignupResponse {

@@ -4,10 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Eye, EyeOff, KeyRound, Loader2, User } from "lucide-react";
 import { signup, signin } from "@/lib/api";
+import axios from "axios";
 
 export default function SignUpPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordHint, setPasswordHint] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -17,16 +19,26 @@ export default function SignUpPage() {
     setError("");
     setIsLoading(true);
     try {
-      await signup({ username, password });
+      await signup({ username, password, passwordHint: passwordHint.trim() || undefined });
       // Auto sign-in after signup
       const data = await signin({ username, password });
       localStorage.setItem("sb_token", data.token);
       localStorage.setItem("sb_username", data.username);
       window.location.href = "/dashboard";
     } catch (err: unknown) {
-      const msg =
-        err instanceof Error ? err.message : "Failed to create account.";
-      setError(msg.includes("already exist") ? "Username already taken." : msg);
+      let msg = "Failed to create account.";
+      if (axios.isAxiosError(err) && err.response?.data?.message) {
+        msg = err.response.data.message;
+      } else if (err instanceof Error) {
+        msg = err.message;
+      }
+      
+      // Clean up the backend message if needed for better UI
+      if (msg.toLowerCase().includes("already exist")) {
+        setError("Username is already taken.");
+      } else {
+        setError(msg);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -109,6 +121,27 @@ export default function SignUpPage() {
                 <EyeOff size={18} strokeWidth={2} aria-hidden="true" />
               )}
             </button>
+          </div>
+        </div>
+
+        <div>
+          <label
+            htmlFor="passwordHint"
+            className="block text-xs font-semibold uppercase tracking-[0.14em] text-gray-500 dark:text-gray-400 mb-2"
+          >
+            Password Hint (Optional)
+          </label>
+          <div className="auth-field group flex min-h-12 items-center rounded-lg border border-gray-200 bg-white text-gray-900 transition-colors duration-150 focus-within:border-gray-300 focus-within:ring-0 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus-within:border-gray-600">
+            <input
+              id="passwordHint"
+              type="text"
+              autoComplete="off"
+              value={passwordHint}
+              onChange={(e) => setPasswordHint(e.target.value)}
+              maxLength={50}
+              className="auth-field-input h-12 min-w-0 flex-1 bg-transparent px-4 text-sm text-gray-900 placeholder-gray-400 outline-none dark:text-white dark:placeholder-gray-500"
+              placeholder="e.g. My first pet's name"
+            />
           </div>
         </div>
 

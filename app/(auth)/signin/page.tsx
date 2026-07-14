@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Eye, EyeOff, KeyRound, Loader2, User } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, KeyRound, Loader2, User, HelpCircle } from "lucide-react";
 import { signin } from "@/lib/api";
+import axios from "axios";
 
 export default function SignInPage() {
   const [username, setUsername] = useState("");
@@ -21,8 +22,35 @@ export default function SignInPage() {
       localStorage.setItem("sb_token", data.token);
       localStorage.setItem("sb_username", data.username);
       window.location.href = "/dashboard";
-    } catch {
-      setError("Invalid username or password.");
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        if (!err.response) {
+          // Backend is down or network issue
+          setError("Unable to connect to server. Please try again later.");
+        } else {
+          // Backend returned a specific error
+          const msg = err.response.data?.message || "Invalid username or password.";
+          
+          // Make the backend messages more user-friendly
+          if (msg === "username not found") {
+            setError("Username not found.");
+          } else if (msg === "Incorrect password") {
+            if (err.response.data?.hint) {
+              setError(`Incorrect password. Hint: ${err.response.data.hint}`);
+            } else {
+              setError("Incorrect password.");
+            }
+          } else {
+            if (err.response.data?.hint) {
+              setError(`${msg} (Hint: ${err.response.data.hint})`);
+            } else {
+              setError(msg);
+            }
+          }
+        }
+      } else {
+        setError("An unexpected error occurred.");
+      }
     } finally {
       setIsLoading(false);
     }
