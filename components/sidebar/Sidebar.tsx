@@ -3,6 +3,8 @@ import { cn } from "@/lib/utils";
 import type { SidebarSection, Note, SourceType } from "@/lib/types";
 import { SiYoutube, SiX } from "@icons-pack/react-simple-icons";
 import { TagManagerDialog } from "@/components/tags";
+import { Logo } from "@/components/common/Logo";
+import * as Dialog from "@radix-ui/react-dialog";
 import {
   Inbox,
   Sun,
@@ -28,6 +30,8 @@ interface SidebarProps {
   notes: Note[];
   activeTags: string[];
   onTagsSelect: (tags: string[]) => void;
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
 function countBySource(notes: Note[], source: SourceType) {
@@ -55,14 +59,14 @@ function NavRow({
       className={cn(
         "flex items-center gap-2.5 w-full px-2.5 py-[7px] rounded-lg text-[13px] transition-colors duration-100 text-left",
         isActive
-          ? "bg-blue-50 text-blue-700 font-medium"
-          : "text-gray-600 hover:bg-gray-100 hover:text-gray-800"
+          ? "bg-blue-50 text-blue-700 font-medium dark:bg-blue-900/20 dark:text-blue-400"
+          : "text-gray-600 hover:bg-gray-100 hover:text-gray-800 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
       )}
     >
       <span
         className={cn(
           "shrink-0 w-4 flex items-center justify-center",
-          isActive ? "text-blue-500" : "text-gray-400"
+          isActive ? "text-blue-500 dark:text-blue-400" : "text-gray-400 dark:text-gray-500"
         )}
       >
         {icon}
@@ -72,7 +76,7 @@ function NavRow({
         <span
           className={cn(
             "text-xs tabular-nums",
-            isActive ? "text-blue-500" : "text-gray-400"
+            isActive ? "text-blue-500 dark:text-blue-400" : "text-gray-400 dark:text-gray-500"
           )}
         >
           {count}
@@ -104,13 +108,13 @@ function SpaceRow({
         "flex items-center gap-2.5 w-full px-2.5 py-[7px] rounded-lg text-[13px] transition-colors duration-100 text-left",
         isActive
           ? "bg-blue-600 text-white font-medium"
-          : "text-gray-600 hover:bg-gray-100 hover:text-gray-800"
+          : "text-gray-600 hover:bg-gray-100 hover:text-gray-800 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
       )}
     >
       <span
         className={cn(
           "shrink-0 w-4 flex items-center justify-center",
-          isActive ? "text-white" : "text-gray-400"
+          isActive ? "text-white" : "text-gray-400 dark:text-gray-500"
         )}
       >
         {icon}
@@ -119,7 +123,7 @@ function SpaceRow({
       <span
         className={cn(
           "text-xs tabular-nums font-medium",
-          isActive ? "text-blue-100" : "text-gray-400"
+          isActive ? "text-blue-100" : "text-gray-400 dark:text-gray-500"
         )}
       >
         {count}
@@ -135,6 +139,8 @@ export function Sidebar({
   notes,
   activeTags,
   onTagsSelect,
+  mobileOpen = false,
+  onMobileClose,
 }: SidebarProps) {
   const [tagManagerOpen, setTagManagerOpen] = useState(false);
 
@@ -144,32 +150,28 @@ export function Sidebar({
   }).length;
   const favoritesCount = notes.filter((n) => n.isFavorite).length;
 
-  return (
-    <aside
-      className="flex flex-col h-full bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 transition-colors"
-      style={{ width: "var(--sidebar-width)" }}
-      aria-label="Main navigation"
-    >
+  const handleSectionClick = (section: SidebarSection) => {
+    onSectionChange(section);
+    if (onMobileClose) onMobileClose();
+  };
+
+  const SidebarInner = (
+    <>
       {/* ── Brand bar ── */}
-      <div className="flex items-center justify-between px-4 h-[52px] border-b border-gray-100 shrink-0">
+      <div className="flex items-center justify-between px-4 h-[52px] border-b border-gray-100 dark:border-gray-800 shrink-0">
         <div className="flex items-center gap-2">
           {/* Brain logo mark */}
-          <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center shrink-0">
-            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
-              <circle cx="5" cy="5" r="3" fill="white" opacity="0.9" />
-              <circle cx="10" cy="5" r="3" fill="white" opacity="0.9" />
-              <circle cx="5" cy="10" r="3" fill="white" opacity="0.9" />
-              <circle cx="10" cy="10" r="3" fill="white" />
-            </svg>
+          <div className="w-7 h-7 bg-white dark:bg-gray-900 rounded-lg flex items-center justify-center shrink-0 text-gray-900 dark:text-white shadow-sm border border-gray-200 dark:border-gray-800">
+            <Logo className="w-[18px] h-[18px]" />
           </div>
-          <span className="font-semibold text-gray-900 text-[14px] tracking-tight">
+          <span className="font-semibold text-gray-900 dark:text-white text-[14px] tracking-tight">
             Second Brain
           </span>
         </div>
         <button
           type="button"
           aria-label="Sync"
-          className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+          className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
         >
           <CloudUpload size={16} />
         </button>
@@ -180,18 +182,18 @@ export function Sidebar({
         <div className="mx-3 mt-3 mb-1">
           <button
             type="button"
-            className="w-full flex items-start gap-2.5 p-3 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-xl transition-colors text-left"
+            className="w-full flex items-start gap-2.5 p-3 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/40 border border-amber-200 dark:border-amber-800/50 rounded-xl transition-colors text-left"
           >
             <Star size={14} className="text-amber-500 shrink-0 mt-0.5" fill="currentColor" />
             <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-semibold text-gray-900 leading-none mb-1">
+              <p className="text-[13px] font-semibold text-gray-900 dark:text-amber-100 leading-none mb-1">
                 Go Premium
               </p>
-              <p className="text-[11px] text-gray-500 leading-relaxed">
+              <p className="text-[11px] text-gray-500 dark:text-amber-200/70 leading-relaxed">
                 Unlock AI features, unlimited files, and much more.
               </p>
             </div>
-            <ChevronRight size={14} className="text-gray-400 shrink-0 mt-0.5" />
+            <ChevronRight size={14} className="text-gray-400 dark:text-amber-500/50 shrink-0 mt-0.5" />
           </button>
         </div>
 
@@ -202,38 +204,38 @@ export function Sidebar({
             label="Inbox"
             count={inboxCount}
             isActive={activeSection === "inbox"}
-            onClick={() => onSectionChange("inbox")}
+            onClick={() => handleSectionClick("inbox")}
           />
           <NavRow
             icon={<Sun size={15} />}
             label="Today"
             isActive={activeSection === "today"}
-            onClick={() => onSectionChange("today")}
+            onClick={() => handleSectionClick("today")}
           />
           <NavRow
             icon={<LayoutList size={15} />}
             label="All Content"
             isActive={activeSection === "all" && false /* not highlighted here */}
-            onClick={() => onSectionChange("all")}
+            onClick={() => handleSectionClick("all")}
           />
           <NavRow
             icon={<Heart size={15} />}
             label="Favorites"
             count={favoritesCount}
             isActive={activeSection === "favorites"}
-            onClick={() => onSectionChange("favorites")}
+            onClick={() => handleSectionClick("favorites")}
           />
           <NavRow
             icon={<Trash2 size={15} />}
             label="Trash"
             isActive={activeSection === "trash"}
-            onClick={() => onSectionChange("trash")}
+            onClick={() => handleSectionClick("trash")}
           />
         </nav>
 
         {/* ── My Spaces ── */}
         <div className="px-3 mt-2">
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 px-2.5 mb-1.5">
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500 px-2.5 mb-1.5">
             My Spaces
           </p>
           <nav className="space-y-0.5" aria-label="Spaces">
@@ -242,35 +244,35 @@ export function Sidebar({
               label="All Content"
               count={notes.length}
               isActive={activeSection === "all"}
-              onClick={() => onSectionChange("all")}
+              onClick={() => handleSectionClick("all")}
             />
             <SpaceRow
               icon={<FileText size={15} />}
               label="Notes"
               count={countBySource(notes, "INTERNAL")}
               isActive={activeSection === "notes"}
-              onClick={() => onSectionChange("notes")}
+              onClick={() => handleSectionClick("notes")}
             />
             <SpaceRow
               icon={<Newspaper size={15} />}
               label="Articles"
               count={countBySource(notes, "WEBSITE")}
               isActive={activeSection === "articles"}
-              onClick={() => onSectionChange("articles")}
+              onClick={() => handleSectionClick("articles")}
             />
             <SpaceRow
               icon={<SiYoutube size={15} />}
               label="Videos"
               count={countBySource(notes, "YOUTUBE")}
               isActive={activeSection === "videos"}
-              onClick={() => onSectionChange("videos")}
+              onClick={() => handleSectionClick("videos")}
             />
             <SpaceRow
               icon={<SiX size={15} />}
               label="Tweets"
               count={countBySource(notes, "TWITTER")}
               isActive={activeSection === "tweets"}
-              onClick={() => onSectionChange("tweets")}
+              onClick={() => handleSectionClick("tweets")}
             />
             <SpaceRow
               icon={<FolderOpen size={15} />}
@@ -280,7 +282,7 @@ export function Sidebar({
                 countBySource(notes, "NOTION")
               }
               isActive={activeSection === "documents"}
-              onClick={() => onSectionChange("documents")}
+              onClick={() => handleSectionClick("documents")}
             />
           </nav>
         </div>
@@ -348,18 +350,51 @@ export function Sidebar({
       </div>
 
       {/* ── Bottom nav ── */}
-      <div className="border-t border-gray-100 px-3 py-2 space-y-0.5 shrink-0">
+      <div className="border-t border-gray-100 dark:border-gray-800 px-3 py-2 space-y-0.5 shrink-0">
         <NavRow
           icon={<Settings size={15} />}
           label="Settings"
-          onClick={onOpenSettings}
+          onClick={() => {
+            onOpenSettings();
+            if (onMobileClose) onMobileClose();
+          }}
         />
         <NavRow
           icon={<HelpCircle size={15} />}
           label="Help & Feedback"
-          onClick={() => {}}
+          onClick={() => {
+            if (onMobileClose) onMobileClose();
+          }}
         />
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Desktop Sidebar */}
+      <aside
+        className="hidden md:flex flex-col h-full bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 transition-colors"
+        style={{ width: "var(--sidebar-width)" }}
+        aria-label="Main navigation"
+      >
+        {SidebarInner}
+      </aside>
+
+      {/* Mobile Sidebar (Drawer) */}
+      <Dialog.Root open={mobileOpen} onOpenChange={(o) => !o && onMobileClose?.()}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm animate-in fade-in-0 md:hidden" />
+          <Dialog.Content
+            className="fixed inset-y-0 left-0 z-50 w-[280px] bg-white dark:bg-gray-900 shadow-2xl flex flex-col data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left transition ease-in-out duration-300 md:hidden"
+            aria-label="Mobile Navigation"
+          >
+            <Dialog.Title className="sr-only">Mobile Navigation</Dialog.Title>
+            <Dialog.Description className="sr-only">Navigate your Second Brain</Dialog.Description>
+            {SidebarInner}
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+    </>
   );
 }

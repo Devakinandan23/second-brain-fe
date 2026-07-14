@@ -4,12 +4,8 @@ import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import {
   User,
-  BookOpen,
   Download,
   Palette,
-  Cpu,
-  MessageSquare,
-  FlaskConical,
   Settings,
   X,
 } from "lucide-react";
@@ -20,16 +16,9 @@ import { cn } from "@/lib/utils";
 
 type SettingsSection =
   | "account"
-  | "entries"
-  | "journals"
-  | "import"
-  | "export"
   | "appearance"
-  | "prompts"
-  | "ai"
-  | "chat"
-  | "advanced"
-  | "labs";
+  | "export"
+  | "advanced";
 
 interface SettingsNavItem {
   id: SettingsSection;
@@ -39,16 +28,9 @@ interface SettingsNavItem {
 
 const NAV_ITEMS: SettingsNavItem[] = [
   { id: "account", label: "Account", icon: <User size={15} /> },
-  { id: "entries", label: "Entries", icon: <BookOpen size={15} /> },
-  { id: "journals", label: "Journals", icon: <BookOpen size={15} /> },
-  { id: "import", label: "Import", icon: <Download size={15} /> },
-  { id: "export", label: "Export", icon: <Download size={15} /> },
   { id: "appearance", label: "Appearance", icon: <Palette size={15} /> },
-  { id: "prompts", label: "Prompts", icon: <MessageSquare size={15} /> },
-  { id: "ai", label: "AI Features", icon: <Cpu size={15} /> },
-  { id: "chat", label: "Daily Chat", icon: <MessageSquare size={15} /> },
+  { id: "export", label: "Export / Import", icon: <Download size={15} /> },
   { id: "advanced", label: "Advanced", icon: <Settings size={15} /> },
-  { id: "labs", label: "Labs", icon: <FlaskConical size={15} /> },
 ];
 
 interface SettingsDialogProps {
@@ -64,41 +46,57 @@ export function SettingsDialog({ open, onClose, username }: SettingsDialogProps)
     <Dialog.Root open={open} onOpenChange={(o) => !o && onClose()}>
       <Dialog.Portal>
         {/* Backdrop */}
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-black/25 backdrop-blur-sm animate-in fade-in-0" />
+        <Dialog.Overlay className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm animate-in fade-in-0" />
 
         {/* Dialog */}
         <Dialog.Content
-          className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-[640px] max-w-[95vw] h-[540px] max-h-[90vh] bg-white rounded-2xl shadow-2xl border border-gray-200 flex overflow-hidden animate-in fade-in-0 zoom-in-95"
+          className={cn(
+            "fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2",
+            "w-[640px] max-w-[95vw] h-[540px] max-h-[90vh]",
+            "bg-white dark:bg-gray-950",
+            "rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800",
+            "flex flex-col md:flex-row overflow-hidden",
+            "animate-in fade-in-0 zoom-in-95"
+          )}
           aria-label="Settings"
         >
           {/* Left nav */}
           <nav
-            className="w-44 shrink-0 bg-gray-50 border-r border-gray-200 flex flex-col py-4 px-2"
+            className="w-full md:w-44 shrink-0 bg-gray-50 dark:bg-gray-900 border-b md:border-b-0 md:border-r border-gray-200 dark:border-gray-800 flex flex-col py-2 px-2 md:py-4"
             aria-label="Settings sections"
           >
-            <div className="flex items-center gap-2 px-2 mb-4">
-              <Settings size={14} className="text-gray-400" aria-hidden="true" />
-              <Dialog.Title className="text-sm font-semibold text-gray-900">
-                Settings
-              </Dialog.Title>
+            <div className="flex items-center justify-between px-2 mb-2 md:mb-4">
+              <div className="flex items-center gap-2">
+                <Settings size={14} className="text-gray-400 dark:text-gray-500" aria-hidden="true" />
+                <Dialog.Title className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  Settings
+                </Dialog.Title>
+              </div>
+              <Dialog.Close asChild className="md:hidden">
+                <button type="button" aria-label="Close settings" className="p-1.5 text-gray-400 hover:text-gray-600 dark:text-gray-500 rounded-lg">
+                  <X size={16} />
+                </button>
+              </Dialog.Close>
             </div>
 
-            <div className="flex-1 space-y-0.5">
+            <div className="flex md:flex-col overflow-x-auto gap-1 md:gap-0 md:space-y-0.5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
               {NAV_ITEMS.map(({ id, label, icon }) => (
                 <button
                   key={id}
                   type="button"
                   onClick={() => setActiveSection(id)}
                   className={cn(
-                    "w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm transition-colors text-left",
+                    "shrink-0 flex items-center gap-2.5 px-3 md:px-2.5 py-2 rounded-lg text-sm transition-colors",
                     activeSection === id
-                      ? "bg-blue-50 text-blue-700 font-medium"
-                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                      ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 font-medium"
+                      : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100"
                   )}
                 >
                   <span
                     className={cn(
-                      activeSection === id ? "text-blue-500" : "text-gray-400"
+                      activeSection === id
+                        ? "text-blue-500 dark:text-blue-400"
+                        : "text-gray-400 dark:text-gray-500"
                     )}
                   >
                     {icon}
@@ -110,14 +108,14 @@ export function SettingsDialog({ open, onClose, username }: SettingsDialogProps)
           </nav>
 
           {/* Right content */}
-          <div className="flex-1 flex flex-col overflow-hidden">
-            {/* Close button */}
-            <div className="flex items-center justify-end px-5 pt-4 pb-0 shrink-0">
+          <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+            {/* Close button (desktop only) */}
+            <div className="hidden md:flex items-center justify-end px-5 pt-4 pb-0 shrink-0">
               <Dialog.Close asChild>
                 <button
                   type="button"
                   aria-label="Close settings"
-                  className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
                 >
                   <X size={16} />
                 </button>
@@ -131,15 +129,15 @@ export function SettingsDialog({ open, onClose, username }: SettingsDialogProps)
               )}
               {activeSection === "appearance" && <AppearanceSettings />}
               {activeSection === "export" && <ExportSettings />}
-              {activeSection !== "account" && activeSection !== "appearance" && activeSection !== "export" && (
+              {activeSection === "advanced" && (
                 <div className="flex flex-col items-center justify-center h-48 text-center">
-                  <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center mb-3">
-                    <Settings size={18} className="text-gray-400" />
+                  <div className="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center justify-center mb-3">
+                    <Settings size={18} className="text-gray-400 dark:text-gray-500" />
                   </div>
-                  <p className="text-sm font-medium text-gray-600 capitalize">
-                    {activeSection} settings
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Advanced settings
                   </p>
-                  <p className="text-xs text-gray-400 mt-1">Coming soon</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-600 mt-1">Coming soon</p>
                 </div>
               )}
             </div>

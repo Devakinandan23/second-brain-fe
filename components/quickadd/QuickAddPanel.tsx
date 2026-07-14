@@ -6,11 +6,10 @@ import {
   Zap,
   Link2,
   FileText,
-  Image as ImageIcon,
   Loader2,
   BookmarkPlus,
+  ArrowLeft,
 } from "lucide-react";
-import { SiX } from "@icons-pack/react-simple-icons";
 import { useContent, useCreateContent } from "@/lib/hooks/useContent";
 import { cn } from "@/lib/utils";
 
@@ -27,9 +26,10 @@ interface QuickAddPanelProps {
   onSaved?: () => void;
   prefilledTag?: string | null;
   onClearPrefilledTag?: () => void;
+  onClose?: () => void;
 }
 
-export function QuickAddPanel({ onSaved, prefilledTag, onClearPrefilledTag }: QuickAddPanelProps) {
+export function QuickAddPanel({ onSaved, prefilledTag, onClearPrefilledTag, onClose }: QuickAddPanelProps) {
   const [activeTab, setActiveTab] = useState<QuickAddTab>("link");
   const [tagPills, setTagPills] = useState<string[]>([]);
   const [isFetchingMeta, setIsFetchingMeta] = useState(false);
@@ -140,31 +140,41 @@ export function QuickAddPanel({ onSaved, prefilledTag, onClearPrefilledTag }: Qu
   const TABS: { id: QuickAddTab; icon: React.ReactNode; label: string }[] = [
     { id: "link", icon: <Link2 size={13} />, label: "Link" },
     { id: "note", icon: <FileText size={13} />, label: "Note" },
-    // { id: "screenshot", icon: <ImageIcon size={13} />, label: "Screenshot" },
-    // { id: "tweet", icon: <SiX size={13} />, label: "Tweet" },
   ];
 
   return (
-    <div className="h-full overflow-y-auto bg-white p-8">
+    <div className="h-full overflow-y-auto bg-white dark:bg-gray-950 p-8 transition-colors">
       <div className="max-w-[500px] mx-auto">
-        <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm p-6 transition-colors">
           {/* ── Header ── */}
           <div className="flex items-start justify-between mb-2">
-            <div>
-              <div className="flex items-center gap-2 mb-1.5">
-                <Zap size={16} className="text-amber-500" fill="currentColor" aria-hidden="true" />
-                <h2 className="text-[16px] font-bold text-gray-900">
-                  Quick Add to Second Brain
-                </h2>
+            <div className="flex items-start gap-3">
+              {onClose && (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="mt-0.5 p-1 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 md:hidden transition-colors"
+                  aria-label="Back"
+                >
+                  <ArrowLeft size={18} />
+                </button>
+              )}
+              <div>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <Zap size={16} className="text-amber-500" fill="currentColor" aria-hidden="true" />
+                  <h2 className="text-[16px] font-bold text-gray-900 dark:text-white">
+                    Quick Add to Second Brain
+                  </h2>
+                </div>
+                <p className="text-[13px] text-gray-500 dark:text-gray-400">
+                  Capture anything. Save everything.
+                </p>
               </div>
-              <p className="text-[13px] text-gray-500">
-                Capture anything. Save everything.
-              </p>
             </div>
             <button
               type="button"
               onClick={() => { reset(); setTagPills([]); setSubmitError(null); }}
-              className="text-[12px] font-medium text-gray-500 px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              className="text-[12px] font-medium text-gray-500 dark:text-gray-400 px-3 py-1.5 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             >
               Clear
             </button>
@@ -187,8 +197,8 @@ export function QuickAddPanel({ onSaved, prefilledTag, onClearPrefilledTag }: Qu
                   className={cn(
                     "flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150 border",
                     activeTab === id
-                      ? "bg-blue-50 text-blue-600 border-blue-200"
-                      : "text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50 bg-white"
+                      ? "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800"
+                      : "text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50 bg-white dark:text-gray-400 dark:bg-gray-900 dark:border-gray-800 dark:hover:border-gray-700 dark:hover:bg-gray-800"
                   )}
                 >
                   {icon}
@@ -213,7 +223,7 @@ export function QuickAddPanel({ onSaved, prefilledTag, onClearPrefilledTag }: Qu
                       id="quick-add-url"
                       placeholder="Paste a link..."
                       onBlur={handleUrlBlur}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-[14px] text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all pr-8 bg-white shadow-sm"
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-800 text-[14px] text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 dark:focus:border-blue-500 transition-all pr-8 bg-white dark:bg-gray-950 shadow-sm"
                     />
                     {isFetchingMeta && (
                       <Loader2
@@ -225,7 +235,7 @@ export function QuickAddPanel({ onSaved, prefilledTag, onClearPrefilledTag }: Qu
                   </div>
                   <p className={cn(
                     "text-[12px] mt-2 px-1 font-medium",
-                    isFetchingMeta ? "text-blue-500 animate-pulse" : "text-gray-500"
+                    isFetchingMeta ? "text-blue-500 animate-pulse" : "text-gray-500 dark:text-gray-400"
                   )}>
                     {isFetchingMeta
                       ? "Fetching metadata…"
@@ -238,7 +248,7 @@ export function QuickAddPanel({ onSaved, prefilledTag, onClearPrefilledTag }: Qu
                   id="quick-add-note-content"
                   placeholder="Write your note..."
                   rows={4}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-[14px] text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 resize-none transition-all shadow-sm"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-800 text-[14px] text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 dark:focus:border-blue-500 resize-none transition-all shadow-sm bg-white dark:bg-gray-950"
                 />
               )}
 
@@ -246,17 +256,17 @@ export function QuickAddPanel({ onSaved, prefilledTag, onClearPrefilledTag }: Qu
               <div>
                 <label
                   htmlFor="quick-add-title"
-                  className="block text-[14px] font-bold text-gray-900 mb-2"
+                  className="block text-[14px] font-bold text-gray-900 dark:text-white mb-2"
                 >
                   Add Title{" "}
-                  <span className="text-gray-400 font-normal">(optional)</span>
+                  <span className="text-gray-400 dark:text-gray-500 font-normal">(optional)</span>
                 </label>
                 <input
                   {...register("title")}
                   id="quick-add-title"
                   type="text"
                   placeholder="Give it a title (optional)"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-[14px] text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all shadow-sm"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-800 text-[14px] text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 dark:focus:border-blue-500 transition-all shadow-sm bg-white dark:bg-gray-950"
                 />
               </div>
 
@@ -264,7 +274,7 @@ export function QuickAddPanel({ onSaved, prefilledTag, onClearPrefilledTag }: Qu
               <div>
                 <label
                   htmlFor="quick-add-tags"
-                  className="block text-[14px] font-bold text-gray-900 mb-2"
+                  className="block text-[14px] font-bold text-gray-900 dark:text-white mb-2"
                 >
                   Tags
                 </label>
@@ -275,7 +285,7 @@ export function QuickAddPanel({ onSaved, prefilledTag, onClearPrefilledTag }: Qu
                     {tagPills.map((tag) => (
                       <span
                         key={tag}
-                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium bg-blue-100 text-blue-700"
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
                       >
                         {tag}
                         <button
@@ -283,7 +293,7 @@ export function QuickAddPanel({ onSaved, prefilledTag, onClearPrefilledTag }: Qu
                           onClick={() =>
                             setTagPills((p) => p.filter((t) => t !== tag))
                           }
-                          className="hover:text-blue-900 transition-colors"
+                          className="hover:text-blue-900 dark:hover:text-blue-300 transition-colors"
                           aria-label={`Remove ${tag}`}
                         >
                           ×
@@ -305,19 +315,19 @@ export function QuickAddPanel({ onSaved, prefilledTag, onClearPrefilledTag }: Qu
                     }
                   }}
                   onBlur={commitTagInput}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-[14px] text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all shadow-sm"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-800 text-[14px] text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 dark:focus:border-blue-500 transition-all shadow-sm bg-white dark:bg-gray-950"
                 />
 
                 {/* Suggested tags */}
                 {topTags.length > 0 && (
                   <div className="flex flex-wrap items-center gap-2 mt-3 px-1">
-                    <span className="text-[12px] text-gray-500">Suggested:</span>
+                    <span className="text-[12px] text-gray-500 dark:text-gray-400">Suggested:</span>
                     {topTags.filter((t) => !tagPills.includes(t)).map((tag) => (
                       <button
                         key={tag}
                         type="button"
                         onClick={() => addSuggestedTag(tag)}
-                        className="text-[11px] px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-full transition-colors font-semibold"
+                        className="text-[11px] px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/40 rounded-full transition-colors font-semibold"
                       >
                         {tag}
                       </button>
@@ -331,17 +341,17 @@ export function QuickAddPanel({ onSaved, prefilledTag, onClearPrefilledTag }: Qu
                 <div>
                   <label
                     htmlFor="quick-add-notes"
-                    className="block text-[14px] font-bold text-gray-900 mb-2"
+                    className="block text-[14px] font-bold text-gray-900 dark:text-white mb-2"
                   >
                     Notes{" "}
-                    <span className="text-gray-400 font-normal">(optional)</span>
+                    <span className="text-gray-400 dark:text-gray-500 font-normal">(optional)</span>
                   </label>
                   <textarea
                     {...register("notes")}
                     id="quick-add-notes"
                     placeholder="Add any notes or thoughts..."
                     rows={4}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 text-[14px] text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 resize-none transition-all shadow-sm"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-800 text-[14px] text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 dark:focus:border-blue-500 resize-none transition-all shadow-sm bg-white dark:bg-gray-950"
                   />
                 </div>
               )}
@@ -350,7 +360,7 @@ export function QuickAddPanel({ onSaved, prefilledTag, onClearPrefilledTag }: Qu
               {submitError && (
                 <div
                   role="alert"
-                  className="flex items-start gap-2 px-4 py-3 bg-red-50 border border-red-100 rounded-xl text-[13px] text-red-600"
+                  className="flex items-start gap-2 px-4 py-3 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/50 rounded-xl text-[13px] text-red-600 dark:text-red-400"
                 >
                   <span className="shrink-0 mt-0.5">⚠</span>
                   <span>{submitError}</span>
@@ -379,7 +389,7 @@ export function QuickAddPanel({ onSaved, prefilledTag, onClearPrefilledTag }: Qu
                   <>
                     <div className="flex items-center justify-center w-full">
                       <BookmarkPlus size={16} className="mr-1.5" />
-                      Save to Second Brain
+                      Save
                     </div>
                     <span className="absolute right-3 flex items-center gap-1 bg-blue-500/30 px-1.5 py-0.5 rounded text-[11px] font-medium text-white border border-blue-400/30">
                       <span>⌘</span> Enter
@@ -391,9 +401,9 @@ export function QuickAddPanel({ onSaved, prefilledTag, onClearPrefilledTag }: Qu
           </div>
         </div>
         
-        <p className="text-center text-[12px] text-gray-500 mt-6 font-medium">
+        <p className="text-center text-[12px] text-gray-500 dark:text-gray-400 mt-6 font-medium">
           Tips: You can also use{" "}
-          <kbd className="px-1.5 py-0.5 bg-white border border-gray-200 shadow-sm rounded text-gray-600 font-mono text-[11px]">
+          <kbd className="px-1.5 py-0.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm rounded text-gray-600 dark:text-gray-300 font-mono text-[11px]">
             ⌘ N
           </kbd>{" "}
           anywhere to quick add

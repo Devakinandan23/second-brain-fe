@@ -43,9 +43,31 @@ export function ShareBrainDialog({ open, onClose }: ShareBrainDialogProps) {
 
   async function handleCopy() {
     if (!shareLink) return;
-    await navigator.clipboard.writeText(shareLink);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareLink);
+      } else {
+        // Fallback for non-secure contexts (e.g., local IP on mobile)
+        const textArea = document.createElement("textarea");
+        textArea.value = shareLink;
+        
+        // Avoid scrolling to bottom
+        textArea.style.top = "0";
+        textArea.style.left = "0";
+        textArea.style.position = "fixed";
+
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+      }
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy link:", err);
+    }
   }
 
   return (

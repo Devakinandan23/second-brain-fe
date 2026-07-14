@@ -1,6 +1,9 @@
 @import "tailwindcss";
 
-/* ---- Design Tokens ---- */
+/* ---- Tailwind v4: class-based dark mode (next-themes injects .dark on <html>) ---- */
+@variant dark (&:where(.dark, .dark *));
+
+/* ---- Design Tokens (Light) ---- */
 :root {
   --accent: #2563eb;
   --accent-hover: #1d4ed8;
@@ -32,6 +35,34 @@
 
   --transition: 150ms ease-out;
 }
+
+/* ---- Design Tokens (Dark) ---- */
+.dark {
+  --bg-primary: #0c0c0e;
+  --bg-secondary: #111113;
+  --bg-tertiary: #18181b;
+  --bg-hover: #1e1e21;
+
+  --border-default: #27272a;
+  --border-subtle: #1e1e21;
+
+  --text-primary: #fafafa;
+  --text-secondary: #a1a1aa;
+  --text-tertiary: #52525b;
+
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --shadow-md: 0 4px 12px 0 rgb(0 0 0 / 0.4);
+  --shadow-lg: 0 12px 32px 0 rgb(0 0 0 / 0.5);
+}
+
+/* ---- ToggleSwitch dark mode overrides ---- */
+.dark .custom-switch {
+  --outline_color: #71717a;
+  --thumb_color: #3f3f46;
+  --track_color: #3f3f46;
+  --track_active_color: #3b82f6;
+}
+
 
 /* ---- Base ---- */
 *, *::before, *::after {

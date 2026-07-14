@@ -16,7 +16,7 @@ import type {
   Note,
 } from "./types";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://192.168.1.2:3001";
 
 const apiClient = axios.create({
   baseURL: `${BASE_URL}/api/v1`,

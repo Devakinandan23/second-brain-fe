@@ -22,14 +22,13 @@ export default function DashboardPage() {
   });
   const [isAuthChecked, setIsAuthChecked] = useState(false);
 
-  // Auth guard — client-side since JWT is in localStorage
+  // Auth guard
   useEffect(() => {
     const token = localStorage.getItem("sb_token");
     if (!token) {
       router.replace("/signin");
       return;
     }
-    // Avoid calling setState synchronously in effect
     const timer = setTimeout(() => setIsAuthChecked(true), 0);
     return () => clearTimeout(timer);
   }, [router]);
@@ -42,6 +41,8 @@ export default function DashboardPage() {
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isMobileQuickAddOpen, setIsMobileQuickAddOpen] = useState(false);
   const [prefilledTag, setPrefilledTag] = useState<string | null>(null);
 
   // Resize logic
@@ -73,7 +74,7 @@ export default function DashboardPage() {
 
   const selectedNote = notes.find((n) => n.id === selectedNoteId) || null;
 
-  // ⌘K shortcut for search
+  // Shortcuts
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
@@ -95,35 +96,43 @@ export default function DashboardPage() {
 
   const handleSectionChange = useCallback((s: SidebarSection) => {
     setActiveSection(s);
+    setIsMobileQuickAddOpen(false);
   }, []);
 
   const handleSelectNote = useCallback((note: Note) => {
     setSelectedNoteId((prev) => (prev === note.id ? null : note.id));
+    setIsMobileQuickAddOpen(false);
   }, []);
 
   const handleAddContent = useCallback(() => {
     setSelectedNoteId(null);
     setPrefilledTag(null);
+    setIsMobileQuickAddOpen(true);
   }, []);
 
   if (!isAuthChecked) {
     return (
-      <div className="flex h-screen items-center justify-center bg-[#FAFAFA] dark:bg-gray-950">
+      <div className="flex h-screen items-center justify-center bg-[#FAFAFA] dark:bg-gray-950 transition-colors">
         <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
+  // To prevent inline style breaking responsive design, only apply explicit width when on desktop md+ breakpoint.
+  // Using a custom CSS variable or conditionally ignoring it is easiest. We'll use CSS for responsive width where possible,
+  // but since we rely on style={{ width: contentWidth }}, we must be careful not to force 420px on mobile.
+  // On mobile (max-width: 768px), the list should take 100% width if shown. We can rely on flex-1 to override style in flex container,
+  // or set width conditionally using a hook. A simpler trick: use style width but override with max-width: 100% in classes.
+
   return (
     <div className="flex h-screen overflow-hidden bg-white dark:bg-gray-950 transition-colors">
-      {/* Settings dialog */}
       <SettingsDialog
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
         username={username}
       />
 
-      {/* Left: Sidebar */}
+      {/* Sidebar handles both desktop and mobile modes internally */}
       {isSidebarOpen && (
         <Sidebar
           activeSection={activeSection}
@@ -131,13 +140,17 @@ export default function DashboardPage() {
           onOpenSettings={() => setSettingsOpen(true)}
           notes={notes}
           activeTags={activeTags}
-          onTagsSelect={setActiveTags}
+          onTagsSelect={(tags) => {
+            setActiveTags(tags);
+            setIsMobileQuickAddOpen(false);
+          }}
+          mobileOpen={isMobileSidebarOpen}
+          onMobileClose={() => setIsMobileSidebarOpen(false)}
         />
       )}
 
       {/* Center + Right: main area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header spans the full remaining width */}
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         <Header
           viewMode={viewMode}
           onViewModeChange={setViewMode}
@@ -147,6 +160,7 @@ export default function DashboardPage() {
           onOpenSettings={() => setSettingsOpen(true)}
           onAddContent={handleAddContent}
           onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
+          onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
         />
 
         {/* Content area */}
@@ -154,8 +168,11 @@ export default function DashboardPage() {
           {/* Content list */}
           <div
             className={cn(
-              "flex flex-col bg-white dark:bg-gray-900 overflow-hidden transition-colors",
-              (viewMode !== "list" && !selectedNote) ? "flex-1" : "shrink-0"
+              "flex flex-col bg-white dark:bg-gray-900 overflow-hidden transition-colors !max-w-full",
+              // Mobile logic: hide list if a note is selected OR quick add is open
+              (selectedNote || isMobileQuickAddOpen) ? "hidden md:flex" : "flex-1",
+              // Desktop logic: either take all space or fixed width shrink-0
+              (viewMode !== "list" && !selectedNote) ? "md:flex-1" : "md:shrink-0"
             )}
             style={(viewMode !== "list" && !selectedNote) ? undefined : { width: contentWidth }}
           >
@@ -171,19 +188,21 @@ export default function DashboardPage() {
             />
           </div>
 
-          {/* Resizer - only show if right panel is visible */}
+          {/* Resizer - only show if right panel is visible ON DESKTOP */}
           {(viewMode === "list" || selectedNote) && (
             <div
-              className="w-1 cursor-col-resize hover:bg-blue-400 active:bg-blue-500 border-r border-gray-200 dark:border-gray-800 shrink-0 z-10 transition-colors"
+              className="hidden md:block w-1 cursor-col-resize hover:bg-blue-400 active:bg-blue-500 border-r border-gray-200 dark:border-gray-800 shrink-0 z-10 transition-colors"
               onMouseDown={startResize}
             />
           )}
 
           {/* Right panel: Quick Add or Detail View */}
-          {/* In list view, always show right panel (Detail or QuickAdd) */}
-          {/* In grid/calendar view, only show right panel if a note is selected */}
-          {(viewMode === "list" || selectedNote) && (
-            <div className="flex-1 overflow-hidden">
+          {(viewMode === "list" || selectedNote || isMobileQuickAddOpen) && (
+            <div className={cn(
+              "flex-1 overflow-hidden",
+              // On mobile: only show block if a note is selected or quick add is open.
+              (!selectedNote && !isMobileQuickAddOpen) ? "hidden md:block" : "block"
+            )}>
               {selectedNote ? (
                 <DetailView
                   note={selectedNote}
@@ -191,9 +210,10 @@ export default function DashboardPage() {
                 />
               ) : (
                 <QuickAddPanel 
-                  onSaved={() => {}} 
+                  onSaved={() => setIsMobileQuickAddOpen(false)} 
                   prefilledTag={prefilledTag} 
-                  onClearPrefilledTag={() => setPrefilledTag(null)} 
+                  onClearPrefilledTag={() => setPrefilledTag(null)}
+                  onClose={() => setIsMobileQuickAddOpen(false)}
                 />
               )}
             </div>

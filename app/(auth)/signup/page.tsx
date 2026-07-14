@@ -33,12 +33,12 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
+    <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm p-8 transition-colors">
       <div className="mb-6">
-        <h1 className="text-xl font-semibold text-gray-900">
+        <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
           Create your account
         </h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
           Start building your Second Brain
         </p>
       </div>
@@ -47,7 +47,7 @@ export default function SignUpPage() {
         <div>
           <label
             htmlFor="username"
-            className="block text-sm font-medium text-gray-700 mb-1.5"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
           >
             Username
           </label>
@@ -59,7 +59,7 @@ export default function SignUpPage() {
             minLength={3}
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-150"
+            className="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-150"
             placeholder="your-username"
           />
         </div>
@@ -67,7 +67,7 @@ export default function SignUpPage() {
         <div>
           <label
             htmlFor="password"
-            className="block text-sm font-medium text-gray-700 mb-1.5"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
           >
             Password
           </label>
@@ -79,13 +79,13 @@ export default function SignUpPage() {
             minLength={6}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-150"
+            className="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-150"
             placeholder="••••••••"
           />
         </div>
 
         {error && (
-          <p className="text-sm text-red-500 bg-red-50 px-3 py-2 rounded-lg">
+          <p className="text-sm text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg">
             {error}
           </p>
         )}
@@ -99,11 +99,11 @@ export default function SignUpPage() {
         </button>
       </form>
 
-      <p className="text-center text-sm text-gray-500 mt-6">
+      <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
         Already have an account?{" "}
         <Link
           href="/signin"
-          className="text-blue-600 hover:text-blue-700 font-medium"
+          className="text-blue-600 dark:text-blue-500 hover:text-blue-700 dark:hover:text-blue-400 font-medium"
         >
           Sign in
         </Link>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import {
   ArrowLeft,
@@ -20,9 +20,12 @@ import {
   Trash2,
   Copy,
   Check,
+  CalendarDays,
+  Hash,
 } from "lucide-react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { Tag } from "@/components/common/Tag";
+import { Logo } from "@/components/common/Logo";
+import { Tag, getTagColor } from "@/components/common/Tag";
 import { TagAutocompleteInput } from "@/components/common/TagAutocompleteInput";
 import { ToggleSwitch } from "@/components/common/ToggleSwitch";
 import { ConfirmDeleteDialog } from "@/components/common/ConfirmDeleteDialog";
@@ -75,6 +78,11 @@ export function DetailView({ note, onClose }: DetailViewProps) {
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [isTagManagerOpen, setIsTagManagerOpen] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const [imgError, setImgError] = useState(false);
+
+  useEffect(() => {
+    setImgError(false);
+  }, [note.id]);
 
   const { mutateAsync: updateContent, isPending: isUpdating } = useUpdateContent();
   const { mutateAsync: deleteContent, isPending: isDeleting } = useDeleteContent();
@@ -250,9 +258,9 @@ export function DetailView({ note, onClose }: DetailViewProps) {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-8 pb-8">
+      <div className="flex-1 overflow-y-auto px-4 md:px-8 pb-8">
         {/* Header Section (Title, Tags, Meta, Thumbnail) */}
-        <div className="flex items-start justify-between gap-8 mb-8">
+        <div className="flex flex-col md:flex-row items-start justify-between gap-6 md:gap-8 mb-8">
           {/* Left side */}
           <div className="flex-1 min-w-0">
             {/* Title */}
@@ -327,18 +335,34 @@ export function DetailView({ note, onClose }: DetailViewProps) {
             </div>
           </div>
 
-          {/* Right side: Thumbnail */}
-          {note.thumbnail && (
-            <div className="shrink-0 w-[280px] rounded-xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
+          {/* Right side: Thumbnail or Placeholder */}
+          <div className={cn(
+            "order-first md:order-last w-full md:w-[280px] shrink-0 rounded-xl overflow-hidden shadow-sm border flex items-center justify-center transition-colors aspect-video",
+            (note.thumbnail && !imgError)
+              ? "border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900"
+              : cn(
+                  note.sourceType === "YOUTUBE" && "bg-red-50/50 dark:bg-red-900/10 border-red-100 dark:border-red-900/20 text-red-400 dark:text-red-700",
+                  note.sourceType === "TWITTER" && "bg-slate-50/50 dark:bg-slate-900/20 border-slate-200 dark:border-slate-800 text-slate-300 dark:text-slate-600",
+                  note.sourceType === "GOOGLE_DOC" && "bg-blue-50/50 dark:bg-blue-900/10 border-blue-100 dark:border-blue-900/20 text-blue-300 dark:text-blue-700",
+                  note.sourceType === "NOTION" && "bg-gray-100/50 dark:bg-gray-800/30 border-gray-200 dark:border-gray-800 text-gray-300 dark:text-gray-600",
+                  (note.sourceType === "WEBSITE" || note.sourceType === "INTERNAL") && "bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-800 text-gray-300 dark:text-gray-700"
+                )
+          )}>
+            {(note.thumbnail && !imgError) ? (
               <Image
                 src={note.thumbnail}
                 alt=""
                 width={280}
                 height={158}
                 className="w-full object-cover aspect-video"
+                onError={() => setImgError(true)}
               />
-            </div>
-          )}
+            ) : (
+              <div className="flex items-center justify-center opacity-60">
+                <Logo className="w-12 h-12" />
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Tabs */}
@@ -366,7 +390,7 @@ export function DetailView({ note, onClose }: DetailViewProps) {
         {/* Tab content */}
         <div role="tabpanel">
           {activeTab === "overview" && (
-            <div className="grid grid-cols-[1fr_320px] gap-6 items-start">
+            <div className="grid grid-cols-1 md:grid-cols-[1fr_320px] gap-6 items-start">
               
               {/* Left Column */}
               <div className="flex flex-col gap-6">
