@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowRight, Eye, EyeOff, KeyRound, Loader2, User } from "lucide-react";
 import { signup, signin } from "@/lib/api";
 import axios from "axios";
+import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 
 export default function SignUpPage() {
   const [username, setUsername] = useState("");
@@ -22,7 +23,6 @@ export default function SignUpPage() {
       await signup({ username, password, passwordHint: passwordHint.trim() || undefined });
       // Auto sign-in after signup
       const data = await signin({ username, password });
-      localStorage.setItem("sb_token", data.token);
       localStorage.setItem("sb_username", data.username);
       localStorage.removeItem("sb_onboarded");
       window.location.href = "/dashboard";
@@ -170,6 +170,8 @@ export default function SignUpPage() {
           )}
         </button>
       </form>
+
+      <GoogleSignInButton />
 
       <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-7">
         Already have an account?{" "}

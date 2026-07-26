@@ -1,10 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Eye, EyeOff, KeyRound, Loader2, User, HelpCircle } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, KeyRound, Loader2, User } from "lucide-react";
 import { signin } from "@/lib/api";
 import axios from "axios";
+import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
+
+const oauthErrors: Record<string, string> = {
+  oauth_not_configured: "Google sign-in is not configured on the server yet.",
+  oauth_failed: "Google sign-in could not be completed. Please try again.",
+  account_link_required:
+    "A different account already uses this email. Automatic linking is disabled for security.",
+};
 
 export default function SignInPage() {
   const [username, setUsername] = useState("");
@@ -13,13 +21,22 @@ export default function SignInPage() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  useEffect(() => {
+    const oauthError = new URLSearchParams(window.location.search).get("error");
+    if (!oauthError) return;
+
+    const timer = window.setTimeout(() => {
+      setError(oauthErrors[oauthError] ?? "Google sign-in could not be completed.");
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setIsLoading(true);
     try {
       const data = await signin({ username, password });
-      localStorage.setItem("sb_token", data.token);
       localStorage.setItem("sb_username", data.username);
       window.location.href = "/dashboard";
     } catch (err: unknown) {
@@ -158,6 +175,8 @@ export default function SignInPage() {
           )}
         </button>
       </form>
+
+      <GoogleSignInButton />
 
       <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-7">
         Don&apos;t have an account?{" "}

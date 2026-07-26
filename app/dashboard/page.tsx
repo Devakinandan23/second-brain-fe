@@ -13,6 +13,7 @@ import { useContent } from "@/lib/hooks/useContent";
 import { cn } from "@/lib/utils";
 import type { Note, SidebarSection, ViewMode } from "@/lib/types";
 import { AnimatePresence } from "framer-motion";
+import { getCurrentUser } from "@/lib/api";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -24,15 +25,25 @@ export default function DashboardPage() {
   });
   const [isAuthChecked, setIsAuthChecked] = useState(false);
 
-  // Auth guard
+  // Auth guard: the JWT is stored in an HttpOnly cookie, so ask the backend
+  // to validate the session instead of reading browser storage.
   useEffect(() => {
-    const token = localStorage.getItem("sb_token");
-    if (!token) {
-      router.replace("/signin");
-      return;
-    }
-    const timer = setTimeout(() => setIsAuthChecked(true), 0);
-    return () => clearTimeout(timer);
+    let cancelled = false;
+
+    getCurrentUser()
+      .then(({ user }) => {
+        if (cancelled) return;
+        setUsername(user.username);
+        localStorage.setItem("sb_username", user.username);
+        setIsAuthChecked(true);
+      })
+      .catch(() => {
+        if (!cancelled) router.replace("/signin");
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [router]);
 
   // UI state

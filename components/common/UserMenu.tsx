@@ -6,6 +6,7 @@ import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import * as Avatar from "@radix-ui/react-avatar";
 import { Settings, LogOut, User, Share2 } from "lucide-react";
 import { ShareBrainDialog } from "./ShareBrainDialog";
+import { signout } from "@/lib/api";
 
 interface UserMenuProps {
   username: string;
@@ -16,10 +17,14 @@ export function UserMenu({ username, onOpenSettings }: UserMenuProps) {
   const router = useRouter();
   const [shareOpen, setShareOpen] = useState(false);
 
-  function handleLogout() {
-    localStorage.removeItem("sb_token");
-    localStorage.removeItem("sb_username");
-    router.push("/signin");
+  async function handleLogout() {
+    try {
+      await signout();
+    } finally {
+      localStorage.removeItem("sb_token");
+      localStorage.removeItem("sb_username");
+      router.push("/signin");
+    }
   }
 
   const initials = username
@@ -81,7 +86,7 @@ export function UserMenu({ username, onOpenSettings }: UserMenuProps) {
             <DropdownMenu.Separator className="my-1 h-px bg-gray-100 dark:bg-gray-800" />
 
             <DropdownMenu.Item
-              onSelect={handleLogout}
+              onSelect={() => void handleLogout()}
               className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 cursor-pointer focus:outline-none focus:bg-red-50 dark:focus:bg-red-500/10 transition-colors"
             >
               <LogOut size={14} />

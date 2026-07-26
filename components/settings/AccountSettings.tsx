@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import * as Avatar from "@radix-ui/react-avatar";
 import { LogOut } from "lucide-react";
+import { signout } from "@/lib/api";
 
 interface AccountSettingsProps {
   username: string;
@@ -11,10 +12,14 @@ interface AccountSettingsProps {
 export function AccountSettings({ username }: AccountSettingsProps) {
   const router = useRouter();
 
-  function handleLogout() {
-    localStorage.removeItem("sb_token");
-    localStorage.removeItem("sb_username");
-    router.push("/signin");
+  async function handleLogout() {
+    try {
+      await signout();
+    } finally {
+      localStorage.removeItem("sb_token");
+      localStorage.removeItem("sb_username");
+      router.push("/signin");
+    }
   }
 
   const initials = username
@@ -84,7 +89,7 @@ export function AccountSettings({ username }: AccountSettingsProps) {
         <div className="mt-4">
           <button
             type="button"
-            onClick={handleLogout}
+            onClick={() => void handleLogout()}
             className="flex items-center gap-2 text-sm text-red-500 hover:text-red-600 dark:hover:text-red-400 transition-colors font-medium"
           >
             <LogOut size={14} />

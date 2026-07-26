@@ -35,6 +35,7 @@ export interface Note {
 export interface User {
   id: number;
   username: string;
+  email?: string | null;
 }
 
 export interface ShareLink {
@@ -61,6 +62,10 @@ export interface SignupRequest {
 
 export interface SignupResponse {
   message: string;
+}
+
+export interface CurrentUserResponse {
+  user: User;
 }
 
 export interface GetContentResponse {

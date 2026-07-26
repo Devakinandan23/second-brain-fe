@@ -4,6 +4,7 @@ import type {
   SigninResponse,
   SignupRequest,
   SignupResponse,
+  CurrentUserResponse,
   GetContentResponse,
   CreateContentRequest,
   CreateContentResponse,
@@ -29,6 +30,7 @@ if (!BASE_URL) {
 
 const apiClient = axios.create({
   baseURL: `${BASE_URL}/api/v1`,
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
@@ -49,7 +51,7 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+    if (error.response?.status === 401) {
       if (typeof window !== "undefined") {
         localStorage.removeItem("sb_token");
         window.dispatchEvent(new Event("session_expired"));
@@ -68,6 +70,15 @@ export async function signin(data: SigninRequest): Promise<SigninResponse> {
 export async function signup(data: SignupRequest): Promise<SignupResponse> {
   const res = await apiClient.post<SignupResponse>("/signup", data);
   return res.data;
+}
+
+export async function getCurrentUser(): Promise<CurrentUserResponse> {
+  const res = await apiClient.get<CurrentUserResponse>("/auth/me");
+  return res.data;
+}
+
+export async function signout(): Promise<void> {
+  await apiClient.post("/auth/logout");
 }
 
 // Content / Notes
