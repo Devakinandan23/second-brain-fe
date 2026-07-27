@@ -1,23 +1,24 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { Sun, Moon, Monitor, Type, AlignLeft, AlignJustify, Maximize } from "lucide-react";
 import { useTheme } from "next-themes";
-import { cn } from "@/lib/utils";
 import type { ThemeMode, SidebarDensity, FontSize } from "@/lib/types";
 import { ToggleSwitch } from "@/components/common/ToggleSwitch";
 import { RadioTileGroup } from "./RadioTileGroup";
 
 export function AppearanceSettings() {
   const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
   const [use24Hour, setUse24Hour] = useState(false);
   const [density, setDensity] = useState<SidebarDensity>("comfortable");
   const [fontSize, setFontSize] = useState<FontSize>("medium");
   const [reduceMotion, setReduceMotion] = useState(false);
   const [coloredTags, setColoredTags] = useState(true);
-
-  useEffect(() => setMounted(true), []);
 
   return (
     <div className="space-y-7">

@@ -49,7 +49,7 @@ export function TagSearch({ value, onChange, showCreate, onCreate }: TagSearchPr
         >
           <Plus size={13} className="shrink-0" />
           Create&nbsp;
-          <span className="font-semibold">"{value.trim()}"</span>
+          <span className="font-semibold">&quot;{value.trim()}&quot;</span>
         </button>
       )}
     </div>
