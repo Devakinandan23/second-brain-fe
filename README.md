@@ -2,6 +2,10 @@
 
 A beautiful, responsive, and highly interactive frontend for the Second Brain personal knowledge management application. Built to deliver a premium user experience with fluid animations, dynamic dark mode, and a highly polished UI.
 
+## Related Repository
+
+The [Second Brain Backend](https://github.com/Devakinandan23/second-brain-backend) provides the API, authentication, storage, and metadata extraction for this interface.
+
 ## ✨ Key Features
 - **Modern UI/UX**: Glassmorphism, smooth Framer Motion animations, and beautiful typography.
 - **Dynamic Themes**: Full support for system, light, and dark modes with seamless color swapping.
